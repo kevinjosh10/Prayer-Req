@@ -11,12 +11,14 @@ const categories = [
 export default function PrayerForm() {
   const [formData, setFormData] = useState({ name: '', request: '', category: '' });
   const [status, setStatus] = useState('idle'); // idle, loading, success, error
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.request.trim()) return;
 
     setStatus('loading');
+    setErrorMessage('');
     try {
       await submitPrayerRequest({
         name: formData.name.trim() || 'Anonymous',
@@ -30,6 +32,7 @@ export default function PrayerForm() {
       setTimeout(() => setStatus('idle'), 5000);
     } catch (error) {
       console.error("Error submitting prayer:", error);
+      setErrorMessage(error.message || 'Unknown error');
       setStatus('error');
     }
   };
@@ -113,7 +116,10 @@ export default function PrayerForm() {
                 </div>
 
                 {status === 'error' && (
-                  <p className="text-red-400 text-sm font-light">Something went wrong. Please try again.</p>
+                  <div className="text-red-400 text-sm font-light bg-red-400/10 p-3 rounded-lg border border-red-400/20">
+                    <p className="font-medium mb-1">Something went wrong:</p>
+                    <p className="font-mono text-xs break-words">{errorMessage}</p>
+                  </div>
                 )}
 
                 <button
