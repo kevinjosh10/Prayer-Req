@@ -59,6 +59,7 @@ export default function PrayerForm() {
 
         <div className="glass-card rounded-3xl p-8 md:p-10 shadow-2xl relative overflow-hidden">
           <AnimatePresence mode="wait">
+            {status === 'success' ? (
               <motion.div
                 key="success"
                 initial={{ opacity: 0 }}
