@@ -16,25 +16,24 @@ export default function Hero() {
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20 pb-16">
-        {/* Moving video background */}
-        <div className="absolute inset-0 z-0 overflow-hidden">
-          <div className="absolute inset-0 bg-[#09090b]/60 mix-blend-multiply z-10" />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#09090b]/30 via-transparent to-[#09090b] z-10" />
-          <motion.video 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.4 }}
-            transition={{ duration: 3 }}
-            autoPlay 
-            loop 
-            muted 
-            playsInline
-            className="w-full h-full object-cover scale-105"
-          >
-            {/* Using a calm abstract particle/light video from a reliable CDN */}
-            <source src="https://cdn.pixabay.com/video/2020/05/17/39327-422896564_large.mp4" type="video/mp4" />
-            <source src="https://cdn.pixabay.com/video/2022/11/01/137351-766779162_large.mp4" type="video/mp4" />
-          </motion.video>
-        </div>
+      <div className="absolute inset-0 z-0 overflow-hidden">
+        {/* Lighter overlays so the video is highly visible */}
+        <div className="absolute inset-0 bg-[#09090b]/30 z-10" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#09090b] z-10" />
+        <motion.video 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.8 }}
+          transition={{ duration: 2 }}
+          autoPlay 
+          loop 
+          muted 
+          playsInline
+          className="w-full h-full object-cover scale-105 filter blur-sm mix-blend-screen"
+        >
+          {/* Extremely reliable public abstract fluid video */}
+          <source src="https://assets.codepen.io/3364143/7btrrd.mp4" type="video/mp4" />
+        </motion.video>
+      </div>
       
       <div className="container mx-auto px-6 relative z-20 flex flex-col items-center text-center">
         <motion.div
