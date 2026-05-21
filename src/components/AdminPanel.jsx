@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { listenToPrayerRequests, markAsPrayed, deletePrayerRequest } from '../firebase/api';
-import { motion } from 'framer-motion';
-import { CheckCircle2, Trash2, ArrowLeft, Shield, Activity, Heart, Search } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { CheckCircle2, Trash2, ArrowLeft, Shield, Activity, Heart, Search, X } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 
 export default function AdminPanel() {
@@ -11,6 +11,7 @@ export default function AdminPanel() {
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState('All');
+  const [selectedPrayer, setSelectedPrayer] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -221,8 +222,12 @@ export default function AdminPanel() {
                   </tr>
                 ) : (
                   filteredPrayers.map((req) => (
-                    <tr key={req.id} className="group hover:bg-zinc-900/30 transition-colors">
-                      <td className="py-4 px-4 align-top">
+                    <tr 
+                      key={req.id} 
+                      onClick={() => setSelectedPrayer(req)}
+                      className="group hover:bg-zinc-900/50 transition-colors cursor-pointer"
+                    >
+                      <td className="py-4 px-4 align-top" onClick={(e) => e.stopPropagation()}>
                         <button
                           onClick={() => handleTogglePrayed(req.id, req.prayedFor)}
                           className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium transition-all ${
@@ -255,9 +260,9 @@ export default function AdminPanel() {
                         <div className="text-xs text-zinc-500 uppercase tracking-wider mt-1">{req.category || 'Uncategorized'}</div>
                       </td>
                       <td className="py-4 px-4 align-top w-full max-w-md">
-                        <p className="text-sm text-zinc-300 font-light leading-relaxed whitespace-pre-wrap">{req.request}</p>
+                        <p className="text-sm text-zinc-300 font-light leading-relaxed whitespace-pre-wrap line-clamp-2">{req.request}</p>
                       </td>
-                      <td className="py-4 px-4 align-top text-right">
+                      <td className="py-4 px-4 align-top text-right" onClick={(e) => e.stopPropagation()}>
                         <button
                           onClick={() => handleDelete(req.id)}
                           className="p-2 text-zinc-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all opacity-0 group-hover:opacity-100"
@@ -274,6 +279,93 @@ export default function AdminPanel() {
           </div>
         </div>
       </div>
+
+      <AnimatePresence>
+        {selectedPrayer && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedPrayer(null)}
+              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            />
+            
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-2xl bg-[#09090b] border border-[var(--color-gold-500)]/20 rounded-3xl p-8 shadow-2xl flex flex-col max-h-[90vh]"
+            >
+              <button 
+                onClick={() => setSelectedPrayer(null)}
+                className="absolute top-6 right-6 p-2 bg-zinc-900 rounded-full text-zinc-400 hover:text-white transition-colors"
+              >
+                <X size={20} />
+              </button>
+
+              <div className="flex items-center gap-4 mb-8">
+                <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-[var(--color-gold-500)]/20 flex items-center justify-center text-[var(--color-gold-400)]">
+                  {selectedPrayer.prayedFor ? <CheckCircle2 size={24} /> : <Heart size={24} />}
+                </div>
+                <div>
+                  <h3 className="text-xl font-medium text-white">{selectedPrayer.name || 'Anonymous'}</h3>
+                  <div className="flex items-center gap-3 mt-1">
+                    <span className="text-xs font-mono text-[var(--color-gold-400)] bg-[var(--color-gold-500)]/10 px-2 py-0.5 rounded">
+                      {selectedPrayer.prayerCode || 'LEGACY'}
+                    </span>
+                    <span className="text-xs text-zinc-500 uppercase tracking-wider">{selectedPrayer.category || 'Uncategorized'}</span>
+                    <span className="text-xs text-zinc-600">{new Date(selectedPrayer.createdAt).toLocaleDateString()}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+                <p className="text-zinc-200 text-lg leading-relaxed whitespace-pre-wrap font-light">
+                  "{selectedPrayer.request}"
+                </p>
+              </div>
+
+              <div className="mt-8 pt-6 border-t border-white/10 flex flex-col sm:flex-row gap-4 justify-between items-center">
+                <div className="flex items-center gap-2 text-sm text-zinc-400">
+                  Privacy: {selectedPrayer.isPublic !== false ? (
+                    <span className="text-zinc-300">Public Wall</span>
+                  ) : (
+                    <span className="text-red-400">Private</span>
+                  )}
+                </div>
+                
+                <div className="flex gap-4 w-full sm:w-auto">
+                  <button
+                    onClick={() => {
+                      handleDelete(selectedPrayer.id);
+                      setSelectedPrayer(null);
+                    }}
+                    className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-xl transition-colors font-medium text-sm"
+                  >
+                    <Trash2 size={16} /> Delete
+                  </button>
+                  <button
+                    onClick={() => {
+                      handleTogglePrayed(selectedPrayer.id, selectedPrayer.prayedFor);
+                      // Update local state so modal updates instantly
+                      setSelectedPrayer({...selectedPrayer, prayedFor: !selectedPrayer.prayedFor});
+                    }}
+                    className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl transition-all font-medium text-sm ${
+                      selectedPrayer.prayedFor 
+                        ? 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700' 
+                        : 'bg-[var(--color-gold-500)] text-zinc-950 hover:bg-[var(--color-gold-400)] shadow-[0_0_20px_rgba(232,208,141,0.3)]'
+                    }`}
+                  >
+                    <CheckCircle2 size={16} />
+                    {selectedPrayer.prayedFor ? 'Mark Unprayed' : 'Mark Prayed'}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
