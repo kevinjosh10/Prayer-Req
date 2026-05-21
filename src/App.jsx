@@ -1,5 +1,6 @@
 import { HashRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import Hero from './sections/Hero';
+import GlobalImpact from './sections/GlobalImpact';
 import BibleVerses from './sections/BibleVerses';
 import PrayerForm from './sections/PrayerForm';
 import CommunityWall from './sections/CommunityWall';
@@ -20,6 +21,7 @@ function LandingPage() {
       </div>
       
       <Hero />
+      <GlobalImpact />
       <BibleVerses />
       <PrayerForm />
       <CommunityWall />

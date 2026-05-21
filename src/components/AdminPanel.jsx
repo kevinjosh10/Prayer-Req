@@ -1,26 +1,23 @@
 import { useState, useEffect } from 'react';
 import { listenToPrayerRequests, markAsPrayed, deletePrayerRequest } from '../firebase/api';
-import { Lock, ArrowLeft, Heart, Search, CheckCircle, Trash2 } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
+import { CheckCircle2, Trash2, ArrowLeft, Shield, Activity, Heart, Search } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
 
 export default function AdminPanel() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [prayers, setPrayers] = useState([]);
   const [error, setError] = useState('');
-  
-  const [requests, setRequests] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filter, setFilter] = useState('All'); // All, Unprayed, Prayed
-  
+  const [filter, setFilter] = useState('All');
+  const navigate = useNavigate();
+
   useEffect(() => {
-    if (!isAuthenticated) return;
-    
-    const unsubscribe = listenToPrayerRequests((data) => {
-      setRequests(data);
-    });
-    
-    return () => unsubscribe();
+    if (isAuthenticated) {
+      const unsubscribe = listenToPrayerRequests(setPrayers);
+      return () => unsubscribe();
+    }
   }, [isAuthenticated]);
 
   const handleLogin = (e) => {
@@ -29,71 +26,67 @@ export default function AdminPanel() {
       setIsAuthenticated(true);
       setError('');
     } else {
-      setError('Incorrect password.');
+      setError('Invalid password');
     }
   };
 
   const handleTogglePrayed = async (id, currentStatus) => {
-    await markAsPrayed(id, !currentStatus);
-  };
-
-  const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this prayer request?")) {
-      await deletePrayerRequest(id);
+    try {
+      await markAsPrayed(id, !currentStatus);
+    } catch (e) {
+      console.error(e);
+      alert("Failed to update status");
     }
   };
 
-  const filteredRequests = requests.filter(req => {
-    const matchesSearch = req.request.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          req.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          req.category.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    if (filter === 'Unprayed') return matchesSearch && !req.prayedFor;
-    if (filter === 'Prayed') return matchesSearch && req.prayedFor;
-    return matchesSearch;
-  });
-
-  const todayCount = requests.filter(r => {
-    const today = new Date().setHours(0,0,0,0);
-    const reqDate = new Date(r.createdAt).setHours(0,0,0,0);
-    return today === reqDate;
-  }).length;
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this prayer?")) return;
+    try {
+      await deletePrayerRequest(id);
+    } catch (e) {
+      console.error(e);
+      alert("Failed to delete prayer");
+    }
+  };
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-6 relative">
-        <div className="absolute inset-0 z-[-1] bg-[#09090b]">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-zinc-800 rounded-full blur-[120px] opacity-20 pointer-events-none"></div>
-        </div>
-        
+      <div className="min-h-screen bg-[#09090b] flex items-center justify-center p-4">
         <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="glass-card rounded-3xl p-8 md:p-10 w-full max-w-md shadow-2xl"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="glass-card rounded-3xl p-8 md:p-10 w-full max-w-md shadow-2xl border border-white/10 relative overflow-hidden"
         >
-          <Link to="/" className="text-zinc-500 hover:text-zinc-300 inline-flex items-center gap-2 mb-8 transition-colors text-sm">
-            <ArrowLeft size={16} /> Back Home
-          </Link>
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[var(--color-gold-400)] to-transparent"></div>
           
-          <div className="w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center mb-6">
-            <Lock size={20} className="text-zinc-400" />
+          <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center mb-6">
+            <Shield className="text-[var(--color-gold-500)]" />
           </div>
-          <h1 className="text-2xl font-medium mb-2">Admin Access</h1>
-          <p className="text-zinc-400 font-light text-sm mb-8">Enter the password to view the prayer room.</p>
+          
+          <h2 className="text-2xl font-semibold mb-2 text-white">Admin Access</h2>
+          <p className="text-zinc-500 text-sm mb-8">Enter your secure password to view and manage incoming prayer requests.</p>
           
           <form onSubmit={handleLogin} className="space-y-4">
-            <div>
-              <input 
-                type="password" 
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Password"
-                className="w-full bg-zinc-900/50 border border-zinc-800 rounded-xl px-4 py-3 text-zinc-200 focus:outline-none focus:border-zinc-600 transition-all placeholder:text-zinc-600"
-              />
-            </div>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Enter password..."
+              className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[var(--color-gold-500)]/50 transition-all font-mono"
+            />
             {error && <p className="text-red-400 text-sm">{error}</p>}
-            <button type="submit" className="w-full bg-zinc-100 text-zinc-900 rounded-xl py-3 font-medium hover:bg-white transition-all">
-              Unlock
+            <button
+              type="submit"
+              className="w-full bg-zinc-100 text-zinc-900 rounded-xl py-3 font-medium hover:bg-white transition-all"
+            >
+              Access Dashboard
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate('/')}
+              className="w-full text-zinc-500 text-sm hover:text-zinc-300 transition-colors mt-4"
+            >
+              Return Home
             </button>
           </form>
         </motion.div>
@@ -101,128 +94,186 @@ export default function AdminPanel() {
     );
   }
 
+  const filteredPrayers = prayers.filter(req => {
+    const matchesSearch = req.request.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          req.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          req.category?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    if (filter === 'Unprayed') return matchesSearch && !req.prayedFor;
+    if (filter === 'Prayed') return matchesSearch && req.prayedFor;
+    return matchesSearch;
+  });
+
+  const totalPrayers = prayers.length;
+  const answeredPrayers = prayers.filter(p => p.prayedFor).length;
+  const waitingPrayers = totalPrayers - answeredPrayers;
+  
+  // Calculate top category
+  const categories = prayers.reduce((acc, curr) => {
+    const cat = curr.category || 'Uncategorized';
+    acc[cat] = (acc[cat] || 0) + 1;
+    return acc;
+  }, {});
+  const topCategory = Object.entries(categories).sort((a, b) => b[1] - a[1])[0]?.[0] || 'N/A';
+
   return (
-    <div className="min-h-screen bg-[#09090b] text-zinc-100">
-      <header className="border-b border-white/5 bg-[#09090b]/80 backdrop-blur-md sticky top-0 z-50">
-        <div className="container mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link to="/" className="text-zinc-500 hover:text-zinc-300 transition-colors">
-              <ArrowLeft size={20} />
+    <div className="min-h-screen bg-[#09090b] text-zinc-100 p-6 md:p-12 font-sans">
+      <div className="max-w-6xl mx-auto">
+        <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-12">
+          <div>
+            <Link to="/" className="text-zinc-500 hover:text-zinc-300 transition-colors flex items-center gap-2 mb-4 text-sm font-medium uppercase tracking-wider">
+              <ArrowLeft size={16} /> Back to Site
             </Link>
-            <h1 className="font-medium text-lg tracking-wide">Prayer Room</h1>
-          </div>
-          <div className="text-sm text-zinc-500">
-            {todayCount} new today
-          </div>
-        </div>
-      </header>
-
-      <main className="container mx-auto px-6 py-8">
-        {/* Stats Row */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="glass-card p-5 rounded-2xl">
-            <p className="text-zinc-500 text-sm mb-1">Total Requests</p>
-            <p className="text-2xl font-medium">{requests.length}</p>
-          </div>
-          <div className="glass-card p-5 rounded-2xl">
-            <p className="text-zinc-500 text-sm mb-1">Today</p>
-            <p className="text-2xl font-medium text-[var(--color-gold-400)]">{todayCount}</p>
-          </div>
-          <div className="glass-card p-5 rounded-2xl">
-            <p className="text-zinc-500 text-sm mb-1">Unprayed</p>
-            <p className="text-2xl font-medium">{requests.filter(r => !r.prayedFor).length}</p>
-          </div>
-          <div className="glass-card p-5 rounded-2xl">
-            <p className="text-zinc-500 text-sm mb-1">Prayed For</p>
-            <p className="text-2xl font-medium text-green-500">{requests.filter(r => r.prayedFor).length}</p>
-          </div>
-        </div>
-
-        {/* Filters and Search */}
-        <div className="flex flex-col md:flex-row gap-4 mb-8 justify-between">
-          <div className="relative max-w-md w-full">
-            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
-            <input 
-              type="text" 
-              placeholder="Search prayers..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-zinc-900/50 border border-zinc-800 rounded-xl pl-10 pr-4 py-2.5 text-zinc-200 focus:outline-none focus:border-zinc-600 transition-all text-sm"
-            />
+            <h1 className="text-3xl font-bold tracking-tight text-white flex items-center gap-3">
+              <Shield className="text-[var(--color-gold-500)]" /> Prayer Dashboard
+            </h1>
+            <p className="text-zinc-500 mt-2">Secure administration panel for managing prayer requests.</p>
           </div>
           
-          <div className="flex gap-2 bg-zinc-900/50 p-1 rounded-xl border border-zinc-800 w-fit">
-            {['All', 'Unprayed', 'Prayed'].map(f => (
-              <button
-                key={f}
-                onClick={() => setFilter(f)}
-                className={`px-4 py-1.5 rounded-lg text-sm transition-all ${filter === f ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
-              >
-                {f}
-              </button>
-            ))}
+          <div className="bg-zinc-900/50 border border-zinc-800 rounded-full px-6 py-2 text-sm font-mono text-[var(--color-gold-400)] flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+            System Online
+          </div>
+        </header>
+
+        {/* Analytics Dashboard */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+          <div className="bg-zinc-900/40 border border-zinc-800/50 rounded-2xl p-6">
+            <div className="flex items-center gap-3 text-zinc-400 mb-2">
+              <Activity size={18} />
+              <span className="text-sm font-medium uppercase tracking-wider">Total Received</span>
+            </div>
+            <p className="text-4xl font-bold text-white">{totalPrayers}</p>
+          </div>
+          
+          <div className="bg-zinc-900/40 border border-zinc-800/50 rounded-2xl p-6 relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-4 opacity-10">
+              <Heart size={64} className="text-[var(--color-gold-500)]" />
+            </div>
+            <div className="flex items-center gap-3 text-zinc-400 mb-2 relative z-10">
+              <CheckCircle2 size={18} className="text-[var(--color-gold-500)]" />
+              <span className="text-sm font-medium uppercase tracking-wider">Answered</span>
+            </div>
+            <p className="text-4xl font-bold text-[var(--color-gold-400)] relative z-10">{answeredPrayers}</p>
+            <p className="text-xs text-zinc-500 mt-2 relative z-10">{waitingPrayers} still waiting</p>
+          </div>
+
+          <div className="bg-zinc-900/40 border border-zinc-800/50 rounded-2xl p-6">
+            <div className="flex items-center gap-3 text-zinc-400 mb-2">
+              <Shield size={18} />
+              <span className="text-sm font-medium uppercase tracking-wider">Top Category</span>
+            </div>
+            <p className="text-2xl font-semibold text-white mt-2 truncate">{topCategory}</p>
           </div>
         </div>
 
-        {/* Requests List */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <AnimatePresence>
-            {filteredRequests.map((req) => (
-              <motion.div
-                key={req.id}
-                layout
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                className={`p-6 rounded-2xl border transition-all ${req.prayedFor ? 'bg-zinc-900/30 border-zinc-800/50 opacity-70' : 'glass-card border-zinc-800/50'}`}
-              >
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h3 className="font-medium text-zinc-200">{req.name}</h3>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="text-xs text-zinc-500">{new Date(req.createdAt).toLocaleDateString()}</span>
-                      <span className="w-1 h-1 rounded-full bg-zinc-700"></span>
-                      <span className="text-xs text-[var(--color-gold-500)] bg-[var(--color-gold-500)]/10 px-2 py-0.5 rounded-full">{req.category}</span>
-                    </div>
-                  </div>
-                  <button 
-                    onClick={() => handleDelete(req.id)}
-                    className="text-zinc-600 hover:text-red-400 transition-colors p-1"
-                    title="Delete request"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-                
-                <p className="text-zinc-300 font-light text-sm leading-relaxed mb-6 whitespace-pre-wrap">
-                  {req.request}
-                </p>
-                
-                <div className="mt-auto border-t border-zinc-800/50 pt-4 flex justify-end">
+        <div className="glass-card rounded-3xl p-6 md:p-8 border border-white/5">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+            <h2 className="text-xl font-medium">Recent Requests</h2>
+            
+            <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+              <div className="relative">
+                <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+                <input
+                  type="text"
+                  placeholder="Search prayers..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full sm:w-64 bg-zinc-900 border border-zinc-800 rounded-xl pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-[var(--color-gold-500)]/50"
+                />
+              </div>
+              
+              <div className="flex bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden p-1">
+                {['All', 'Unprayed', 'Prayed'].map((f) => (
                   <button
-                    onClick={() => handleTogglePrayed(req.id, req.prayedFor)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                      req.prayedFor 
-                        ? 'bg-zinc-800 text-green-500 hover:bg-zinc-700' 
-                        : 'bg-[var(--color-gold-500)]/10 text-[var(--color-gold-400)] hover:bg-[var(--color-gold-500)]/20'
+                    key={f}
+                    onClick={() => setFilter(f)}
+                    className={`px-4 py-1.5 text-sm font-medium rounded-lg transition-all ${
+                      filter === f ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300'
                     }`}
                   >
-                    {req.prayedFor ? <CheckCircle size={16} /> : <Heart size={16} />}
-                    {req.prayedFor ? 'Prayed For' : 'Mark as Prayed'}
+                    {f}
                   </button>
-                </div>
-              </motion.div>
-            ))}
-          </AnimatePresence>
-          
-          {filteredRequests.length === 0 && (
-            <div className="col-span-full py-20 text-center text-zinc-500">
-              <Heart size={48} className="mx-auto mb-4 opacity-20" />
-              <p>No prayer requests found.</p>
+                ))}
+              </div>
             </div>
-          )}
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-zinc-800 text-zinc-500 text-xs uppercase tracking-wider">
+                  <th className="pb-4 font-medium px-4">Status</th>
+                  <th className="pb-4 font-medium px-4">Code</th>
+                  <th className="pb-4 font-medium px-4">Privacy</th>
+                  <th className="pb-4 font-medium px-4">Date</th>
+                  <th className="pb-4 font-medium px-4">Name / Category</th>
+                  <th className="pb-4 font-medium px-4">Request</th>
+                  <th className="pb-4 font-medium px-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-zinc-800/50">
+                {filteredPrayers.length === 0 ? (
+                  <tr>
+                    <td colSpan="7" className="py-12 text-center text-zinc-500 font-light">
+                      No prayer requests found.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredPrayers.map((req) => (
+                    <tr key={req.id} className="group hover:bg-zinc-900/30 transition-colors">
+                      <td className="py-4 px-4 align-top">
+                        <button
+                          onClick={() => handleTogglePrayed(req.id, req.prayedFor)}
+                          className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium transition-all ${
+                            req.prayedFor 
+                              ? 'bg-green-500/10 text-green-400 border border-green-500/20' 
+                              : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+                          }`}
+                        >
+                          <CheckCircle2 size={14} />
+                          {req.prayedFor ? 'Prayed' : 'Mark Prayed'}
+                        </button>
+                      </td>
+                      <td className="py-4 px-4 align-top">
+                        <span className="font-mono text-xs text-[var(--color-gold-400)] bg-[var(--color-gold-500)]/10 px-2 py-1 rounded">
+                          {req.prayerCode || 'LEGACY'}
+                        </span>
+                      </td>
+                      <td className="py-4 px-4 align-top text-xs text-zinc-400">
+                        {req.isPublic !== false ? (
+                          <span className="text-zinc-300">Public</span>
+                        ) : (
+                          <span className="text-red-400 font-semibold">Private</span>
+                        )}
+                      </td>
+                      <td className="py-4 px-4 align-top text-sm text-zinc-400 whitespace-nowrap">
+                        {new Date(req.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className="py-4 px-4 align-top">
+                        <div className="font-medium text-sm text-zinc-200">{req.name || 'Anonymous'}</div>
+                        <div className="text-xs text-zinc-500 uppercase tracking-wider mt-1">{req.category || 'Uncategorized'}</div>
+                      </td>
+                      <td className="py-4 px-4 align-top w-full max-w-md">
+                        <p className="text-sm text-zinc-300 font-light leading-relaxed whitespace-pre-wrap">{req.request}</p>
+                      </td>
+                      <td className="py-4 px-4 align-top text-right">
+                        <button
+                          onClick={() => handleDelete(req.id)}
+                          className="p-2 text-zinc-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                          title="Delete Request"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 }
