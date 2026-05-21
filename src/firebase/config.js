@@ -2,14 +2,14 @@ import { initializeApp } from "firebase/app";
 import { getDatabase } from "firebase/database";
 
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
-  databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL
+  apiKey: "AIzaSyCYD1cQ9tsMGRwIepk38mbEs_g2yGh9874",
+  authDomain: "prayer-req-1f814.firebaseapp.com",
+  projectId: "prayer-req-1f814",
+  storageBucket: "prayer-req-1f814.firebasestorage.app",
+  messagingSenderId: "914694935058",
+  appId: "1:914694935058:web:1a164d5acb48850ab1fecb",
+  measurementId: "G-RTYTBXDNSR",
+  databaseURL: "https://prayer-req-1f814-default-rtdb.firebaseio.com"
 };
 
 // Initialize Firebase
