@@ -9,7 +9,7 @@ const firebaseConfig = {
   messagingSenderId: "914694935058",
   appId: "1:914694935058:web:1a164d5acb48850ab1fecb",
   measurementId: "G-RTYTBXDNSR",
-  databaseURL: "https://prayer-req-1f814-default-rtdb.firebaseio.com"
+  databaseURL: "https://prayer-req-1f814-default-rtdb.asia-southeast1.firebasedatabase.app"
 };
 
 // Initialize Firebase
