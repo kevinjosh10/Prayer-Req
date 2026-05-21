@@ -67,28 +67,69 @@ export default function PrayerForm() {
                 exit={{ opacity: 0 }}
                 className="flex flex-col items-center justify-center text-center py-12 relative"
               >
-                {/* Crazy Explosion Animation using Framer Motion */}
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
+                {/* INSANE Explosion Animation using Framer Motion */}
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0 overflow-visible">
+                  {/* Background Flash */}
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: [0, 1, 0] }}
+                    transition={{ duration: 1, ease: "circOut" }}
+                    className="absolute inset-[-100%] bg-gradient-to-r from-transparent via-[var(--color-gold-500)]/20 to-transparent mix-blend-screen blur-3xl"
+                  />
+
+                  {/* Massive Shockwave Ring */}
+                  <motion.div
+                    initial={{ scale: 0, opacity: 1, borderWidth: "20px" }}
+                    animate={{ scale: [0, 20], opacity: [1, 0], borderWidth: ["20px", "0px"] }}
+                    transition={{ duration: 1.5, ease: "easeOut" }}
+                    className="absolute w-24 h-24 rounded-full border-[var(--color-gold-500)] shadow-[0_0_50px_var(--color-gold-500)]"
+                  />
+                  
+                  {/* Secondary Inner Shockwave */}
+                  <motion.div
+                    initial={{ scale: 0, opacity: 1, borderWidth: "10px" }}
+                    animate={{ scale: [0, 10], opacity: [1, 0], borderWidth: ["10px", "0px"] }}
+                    transition={{ duration: 1.2, delay: 0.1, ease: "easeOut" }}
+                    className="absolute w-16 h-16 rounded-full border-white shadow-[0_0_30px_white]"
+                  />
+
+                  {/* Core Glowing Orb */}
                   <motion.div
                     initial={{ scale: 0, opacity: 1 }}
-                    animate={{ scale: [0, 4, 8], opacity: [1, 0.8, 0] }}
-                    transition={{ duration: 1.5, ease: "easeOut" }}
-                    className="absolute w-32 h-32 bg-[var(--color-gold-500)] rounded-full blur-2xl mix-blend-screen"
+                    animate={{ scale: [0, 6, 12], opacity: [1, 0.9, 0] }}
+                    transition={{ duration: 2, ease: "easeOut" }}
+                    className="absolute w-40 h-40 bg-[var(--color-gold-500)] rounded-full blur-3xl mix-blend-screen"
                   />
-                  {[...Array(12)].map((_, i) => (
-                    <motion.div
-                      key={i}
-                      initial={{ scale: 0, x: 0, y: 0, opacity: 1 }}
-                      animate={{ 
-                        scale: [0, Math.random() * 2 + 1, 0],
-                        x: (Math.random() - 0.5) * 400,
-                        y: (Math.random() - 0.5) * 400,
-                        opacity: [1, 1, 0]
-                      }}
-                      transition={{ duration: 1.5 + Math.random(), ease: "easeOut" }}
-                      className="absolute w-2 h-2 bg-white rounded-full shadow-[0_0_10px_2px_var(--color-gold-400)]"
-                    />
-                  ))}
+
+                  {/* High-Velocity Particle Burst (30 particles) */}
+                  {[...Array(30)].map((_, i) => {
+                    const angle = (Math.PI * 2 * i) / 30;
+                    const velocity = Math.random() * 400 + 200;
+                    const x = Math.cos(angle) * velocity;
+                    const y = Math.sin(angle) * velocity;
+                    const isGold = i % 2 === 0;
+                    const size = Math.random() * 4 + 2;
+
+                    return (
+                      <motion.div
+                        key={`particle-${i}`}
+                        initial={{ scale: 0, x: 0, y: 0, opacity: 1 }}
+                        animate={{ 
+                          scale: [0, 1, 0],
+                          x: x,
+                          y: y,
+                          opacity: [1, 1, 0]
+                        }}
+                        transition={{ duration: Math.random() * 1.5 + 1, ease: "easeOut" }}
+                        style={{ width: size, height: size }}
+                        className={`absolute rounded-full ${
+                          isGold 
+                            ? 'bg-[var(--color-gold-300)] shadow-[0_0_15px_3px_var(--color-gold-500)]' 
+                            : 'bg-white shadow-[0_0_15px_3px_white]'
+                        }`}
+                      />
+                    );
+                  })}
                 </div>
 
                 <motion.div
