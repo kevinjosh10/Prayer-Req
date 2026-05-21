@@ -37,12 +37,14 @@ export default function Hero() {
       
       <div className="container mx-auto px-6 relative z-20 flex flex-col items-center text-center">
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 0.5 }}
-          className="mb-6 flex items-center justify-center"
+          initial={{ opacity: 0, scale: 0, rotate: -15 }}
+          animate={{ opacity: 1, scale: 1, rotate: 0 }}
+          transition={{ duration: 1.2, delay: 0.5, type: "spring", stiffness: 100 }}
+          className="mb-6 flex items-center justify-center text-[var(--color-gold-400)] drop-shadow-[0_0_15px_rgba(232,208,141,0.8)]"
         >
-          <div className="w-[1px] h-12 bg-gradient-to-b from-transparent via-[var(--color-gold-500)] to-transparent"></div>
+          <svg width="32" height="44" viewBox="0 0 24 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2V34M4 10H20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+          </svg>
         </motion.div>
         
         <motion.h1 
