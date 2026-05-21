@@ -18,6 +18,7 @@ export const submitPrayerRequest = async (requestData) => {
   const requestsRef = ref(db, 'prayerRequests');
   const newRequestRef = push(requestsRef);
   const prayerCode = generatePrayerCode();
+  const finalIsPublic = requestData.isPublic === false ? false : true;
   
   await set(newRequestRef, {
     ...requestData,
@@ -26,7 +27,7 @@ export const submitPrayerRequest = async (requestData) => {
     prayedFor: false,
     prayedForAt: null,
     communityPrayers: 0,
-    isPublic: requestData.isPublic !== false // Defaults to true if not explicitly false
+    isPublic: finalIsPublic
   });
   
   return { id: newRequestRef.key, prayerCode };

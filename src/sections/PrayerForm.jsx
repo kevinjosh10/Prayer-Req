@@ -24,7 +24,8 @@ export default function PrayerForm() {
       const result = await submitPrayerRequest({
         name: formData.name.trim() || 'Anonymous',
         request: formData.request.trim(),
-        category: formData.category || 'Uncategorized'
+        category: formData.category || 'Uncategorized',
+        isPublic: formData.isPublic
       });
       setPrayerCode(result.prayerCode);
       setStatus('success');

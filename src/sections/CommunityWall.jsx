@@ -13,7 +13,7 @@ export default function CommunityWall() {
   useEffect(() => {
     const unsubscribe = listenToPrayerRequests((data) => {
       // Filter out private prayers
-      const publicPrayers = data.filter(p => p.isPublic !== false);
+      const publicPrayers = data.filter(p => p.isPublic !== false && p.isPublic !== "false");
       setPrayers(publicPrayers);
     });
     
