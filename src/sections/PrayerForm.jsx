@@ -12,6 +12,7 @@ export default function PrayerForm() {
   const [formData, setFormData] = useState({ name: '', request: '', category: '' });
   const [status, setStatus] = useState('idle'); // idle, loading, success, error
   const [errorMessage, setErrorMessage] = useState('');
+  const [prayerCode, setPrayerCode] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -20,21 +21,29 @@ export default function PrayerForm() {
     setStatus('loading');
     setErrorMessage('');
     try {
-      await submitPrayerRequest({
+      const result = await submitPrayerRequest({
         name: formData.name.trim() || 'Anonymous',
         request: formData.request.trim(),
         category: formData.category || 'Uncategorized'
       });
+      setPrayerCode(result.prayerCode);
       setStatus('success');
       setFormData({ name: '', request: '', category: '' });
       
-      // Reset form after 5 seconds
-      setTimeout(() => setStatus('idle'), 5000);
+      // Reset form after 15 seconds instead of 5 to give them time to copy the code
+      setTimeout(() => {
+        setStatus('idle');
+        setPrayerCode('');
+      }, 15000);
     } catch (error) {
       console.error("Error submitting prayer:", error);
       setErrorMessage(error.message || 'Unknown error');
       setStatus('error');
     }
+  };
+
+  const copyCode = () => {
+    navigator.clipboard.writeText(prayerCode);
   };
 
   return (
@@ -56,13 +65,27 @@ export default function PrayerForm() {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.9 }}
-                className="flex flex-col items-center justify-center text-center py-12"
+                className="flex flex-col items-center justify-center text-center py-8"
               >
                 <div className="w-20 h-20 rounded-full bg-[var(--color-gold-500)]/20 flex items-center justify-center mb-6">
                   <CheckCircle2 size={40} className="text-[var(--color-gold-400)]" />
                 </div>
                 <h3 className="text-2xl font-medium mb-3">Your prayer has been received.</h3>
-                <p className="text-zinc-400 font-light">Tonight, someone will pray for you.</p>
+                <p className="text-zinc-400 font-light mb-8">Tonight, someone will pray for you.</p>
+                
+                <div className="w-full bg-zinc-900/80 border border-zinc-800 rounded-2xl p-6 text-center">
+                  <p className="text-xs text-zinc-500 uppercase tracking-widest mb-2 font-semibold">Your Secret Prayer Code</p>
+                  <div className="flex items-center justify-center gap-4">
+                    <span className="text-3xl font-mono text-gold-400 font-medium tracking-wider">{prayerCode}</span>
+                  </div>
+                  <p className="text-zinc-500 text-sm font-light mt-4">Save this code. You can use it to check when your prayer has been prayed for.</p>
+                  <button 
+                    onClick={copyCode}
+                    className="mt-4 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg text-sm transition-colors"
+                  >
+                    Copy Code
+                  </button>
+                </div>
               </motion.div>
             ) : (
               <motion.form

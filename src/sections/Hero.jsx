@@ -1,7 +1,11 @@
 import { motion } from 'framer-motion';
-import { ArrowDown } from 'lucide-react';
+import { ArrowDown, Search } from 'lucide-react';
+import { useState } from 'react';
+import CheckPrayerModal from '../components/CheckPrayerModal';
 
 export default function Hero() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   const scrollToForm = () => {
     document.getElementById('prayer-form').scrollIntoView({ behavior: 'smooth' });
   };
@@ -58,7 +62,7 @@ export default function Hero() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, delay: 1.5 }}
-          className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto"
+          className="flex flex-col sm:flex-row flex-wrap justify-center gap-4 w-full sm:w-auto"
         >
           <button 
             onClick={scrollToForm}
@@ -67,10 +71,17 @@ export default function Hero() {
             Submit a Prayer
           </button>
           <button 
-            onClick={scrollToVerses}
-            className="px-8 py-4 glass text-zinc-100 rounded-full font-medium hover:bg-white/10 transition-all duration-300 border border-white/10"
+            onClick={() => setIsModalOpen(true)}
+            className="px-8 py-4 glass text-zinc-100 rounded-full font-medium hover:bg-white/10 transition-all duration-300 border border-white/10 flex items-center justify-center gap-2"
           >
-            Read God's Promise
+            Check Status
+            <Search size={16} className="text-zinc-400" />
+          </button>
+          <button 
+            onClick={scrollToVerses}
+            className="px-8 py-4 text-zinc-400 hover:text-zinc-200 transition-colors duration-300 font-light hidden md:block"
+          >
+            Read Promises
           </button>
         </motion.div>
       </div>
@@ -85,6 +96,8 @@ export default function Hero() {
           <ArrowDown size={24} strokeWidth={1} />
         </button>
       </motion.div>
+
+      <CheckPrayerModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </section>
   );
 }
