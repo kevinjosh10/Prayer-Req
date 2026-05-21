@@ -1,10 +1,11 @@
 import { motion } from 'framer-motion';
-import { ArrowDown, Search } from 'lucide-react';
+import { ArrowDown, Search, Share2, Check } from 'lucide-react';
 import { useState } from 'react';
 import CheckPrayerModal from '../components/CheckPrayerModal';
 
 export default function Hero() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const scrollToForm = () => {
     document.getElementById('prayer-form').scrollIntoView({ behavior: 'smooth' });
@@ -12,6 +13,25 @@ export default function Hero() {
 
   const scrollToVerses = () => {
     document.getElementById('bible-verses').scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const handleShare = async () => {
+    const url = window.location.href;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Give Your Worries to God',
+          text: 'Share your prayer request anonymously, and a community will pray for you tonight.',
+          url: url,
+        });
+      } catch (err) {
+        console.error("Error sharing", err);
+      }
+    } else {
+      navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
   };
 
   return (
@@ -88,10 +108,14 @@ export default function Hero() {
             <Search size={16} className="text-zinc-400" />
           </button>
           <button 
-            onClick={scrollToVerses}
-            className="px-8 py-4 text-zinc-400 hover:text-zinc-200 transition-colors duration-300 font-light hidden md:block"
+            onClick={handleShare}
+            className="px-6 py-4 glass text-[var(--color-gold-400)] rounded-full font-medium hover:bg-[var(--color-gold-500)]/10 transition-all duration-300 border border-[var(--color-gold-500)]/20 flex items-center justify-center gap-2"
           >
-            Read Promises
+            {copied ? (
+              <><Check size={16} /> Copied!</>
+            ) : (
+              <><Share2 size={16} /> Share</>
+            )}
           </button>
         </motion.div>
       </div>

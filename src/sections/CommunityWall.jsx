@@ -87,60 +87,7 @@ export default function CommunityWall() {
         <div className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6">
           <AnimatePresence mode="popLayout">
             {filteredPrayers.map((prayer) => (
-              <motion.div
-                layout
-                key={prayer.id}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.2 }}
-                className="break-inside-avoid glass-card rounded-3xl p-6 md:p-8 hover:bg-zinc-900/60 transition-colors border border-white/5 relative group inline-block w-full"
-              >
-                {prayer.prayedFor && (
-                  <div className="absolute -top-3 -right-3 bg-gold-500 text-zinc-950 text-xs font-bold px-3 py-1 rounded-full shadow-lg transform rotate-3">
-                    Answered!
-                  </div>
-                )}
-                
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2 text-zinc-500">
-                    <User size={14} />
-                    <span className="text-sm font-medium">{prayer.name || 'Anonymous'}</span>
-                  </div>
-                  <div className="flex items-center gap-1 text-zinc-600 text-xs font-light">
-                    <Clock size={12} />
-                    <span>{getTimeAgo(prayer.createdAt)}</span>
-                  </div>
-                </div>
-                
-                <p className="text-zinc-300 font-light leading-relaxed mb-6 whitespace-pre-wrap">
-                  "{prayer.request}"
-                </p>
-                
-                <div className="flex items-center justify-between border-t border-white/5 pt-4 mt-auto">
-                  <span className="text-xs text-zinc-500 uppercase tracking-wider font-semibold">
-                    {prayer.category !== 'Uncategorized' ? prayer.category : 'Other'}
-                  </span>
-                  
-                  <button
-                    onClick={() => handlePray(prayer.id)}
-                    disabled={prayedForIds.has(prayer.id)}
-                    className={`flex items-center gap-2 text-xs font-medium px-4 py-2 rounded-full transition-all ${
-                      prayedForIds.has(prayer.id)
-                        ? 'bg-red-500/10 text-red-400 border border-red-500/20'
-                        : 'bg-zinc-900 text-zinc-400 hover:text-red-400 hover:bg-red-500/10 border border-zinc-800 hover:border-red-500/20'
-                    }`}
-                  >
-                    <Heart 
-                      size={14} 
-                      className={prayedForIds.has(prayer.id) ? "fill-red-400" : ""} 
-                    />
-                    <span>
-                      {(prayer.communityPrayers || 0) + (prayedForIds.has(prayer.id) ? (prayer.communityPrayers ? 0 : 1) : 0)} Praying
-                    </span>
-                  </button>
-                </div>
-              </motion.div>
+              <PrayerCard key={prayer.id} prayer={prayer} handlePray={handlePray} prayedForIds={prayedForIds} getTimeAgo={getTimeAgo} />
             ))}
           </AnimatePresence>
         </div>
@@ -156,5 +103,88 @@ export default function CommunityWall() {
         )}
       </div>
     </section>
+  );
+}
+
+function PrayerCard({ prayer, handlePray, prayedForIds, getTimeAgo }) {
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [isHovering, setIsHovering] = useState(false);
+
+  const handleMouseMove = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setMousePosition({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+    });
+  };
+
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.9 }}
+      transition={{ duration: 0.2 }}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={() => setIsHovering(true)}
+      onMouseLeave={() => setIsHovering(false)}
+      className="break-inside-avoid glass-card rounded-3xl p-6 md:p-8 hover:bg-zinc-900/80 transition-colors border border-white/5 relative group inline-block w-full overflow-hidden"
+    >
+      {/* Spotlight Hover Effect */}
+      <div 
+        className="pointer-events-none absolute inset-0 z-0 transition-opacity duration-300"
+        style={{
+          opacity: isHovering ? 1 : 0,
+          background: `radial-gradient(600px circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(232, 208, 141, 0.08), transparent 40%)`
+        }}
+      />
+
+      <div className="relative z-10">
+        {prayer.prayedFor && (
+          <div className="absolute -top-3 -right-3 bg-gold-500 text-zinc-950 text-xs font-bold px-3 py-1 rounded-full shadow-lg transform rotate-3">
+            Answered!
+          </div>
+        )}
+        
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2 text-zinc-500">
+            <User size={14} />
+            <span className="text-sm font-medium">{prayer.name || 'Anonymous'}</span>
+          </div>
+          <div className="flex items-center gap-1 text-zinc-600 text-xs font-light">
+            <Clock size={12} />
+            <span>{getTimeAgo(prayer.createdAt)}</span>
+          </div>
+        </div>
+        
+        <p className="text-zinc-300 font-light leading-relaxed mb-6 whitespace-pre-wrap">
+          "{prayer.request}"
+        </p>
+        
+        <div className="flex items-center justify-between border-t border-white/5 pt-4 mt-auto">
+          <span className="text-xs text-zinc-500 uppercase tracking-wider font-semibold">
+            {prayer.category !== 'Uncategorized' ? prayer.category : 'Other'}
+          </span>
+          
+          <button
+            onClick={() => handlePray(prayer.id)}
+            disabled={prayedForIds.has(prayer.id)}
+            className={`flex items-center gap-2 text-xs font-medium px-4 py-2 rounded-full transition-all ${
+              prayedForIds.has(prayer.id)
+                ? 'bg-red-500/10 text-red-400 border border-red-500/20'
+                : 'bg-zinc-900 text-zinc-400 hover:text-red-400 hover:bg-red-500/10 border border-zinc-800 hover:border-red-500/20'
+            }`}
+          >
+            <Heart 
+              size={14} 
+              className={prayedForIds.has(prayer.id) ? "fill-red-400" : ""} 
+            />
+            <span>
+              {(prayer.communityPrayers || 0) + (prayedForIds.has(prayer.id) ? (prayer.communityPrayers ? 0 : 1) : 0)} Praying
+            </span>
+          </button>
+        </div>
+      </div>
+    </motion.div>
   );
 }

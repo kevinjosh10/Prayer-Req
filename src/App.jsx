@@ -8,10 +8,12 @@ import AdminPanel from './components/AdminPanel';
 import { Shield } from 'lucide-react';
 import DailyBanner from './sections/DailyBanner';
 import HopeSparks from './components/HopeSparks';
+import FloatingNav from './components/FloatingNav';
 
 function LandingPage() {
   return (
     <div className="relative min-h-screen font-sans">
+      <FloatingNav />
       <DailyBanner />
       <HopeSparks />
       {/* Subtle background glow effects */}
