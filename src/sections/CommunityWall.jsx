@@ -11,8 +11,9 @@ export default function CommunityWall() {
     // We only listen to the last 20 prayers to keep the wall clean
     // The API fetches all, we slice it here (or could modify API to limitToLast(20))
     const unsubscribe = listenToPrayerRequests((data) => {
-      // Filter out admin fields, just show public info
-      setPrayers(data.slice(0, 24));
+      // Filter out private prayers and limit to recent
+      const publicPrayers = data.filter(p => p.isPublic !== false);
+      setPrayers(publicPrayers.slice(0, 24));
     });
     
     return () => unsubscribe();

@@ -25,7 +25,8 @@ export const submitPrayerRequest = async (requestData) => {
     createdAt: Date.now(),
     prayedFor: false,
     prayedForAt: null,
-    communityPrayers: 0
+    communityPrayers: 0,
+    isPublic: requestData.isPublic !== false // Defaults to true if not explicitly false
   });
   
   return { id: newRequestRef.key, prayerCode };

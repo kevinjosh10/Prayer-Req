@@ -16,16 +16,25 @@ export default function Hero() {
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20 pb-16">
-      <div className="absolute inset-0 z-0">
-        {/* Abstract beautiful background */}
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#09090b]/50 to-[#09090b] z-10"></div>
-        <motion.div 
-          initial={{ opacity: 0, scale: 1.1 }}
-          animate={{ opacity: 0.15, scale: 1 }}
-          transition={{ duration: 3, ease: "easeOut" }}
-          className="w-full h-full bg-[url('https://images.unsplash.com/photo-1490730141103-6cac27aaab94?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center"
-        />
-      </div>
+        {/* Moving video background */}
+        <div className="absolute inset-0 z-0 overflow-hidden">
+          <div className="absolute inset-0 bg-[#09090b]/60 mix-blend-multiply z-10" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#09090b]/30 via-transparent to-[#09090b] z-10" />
+          <motion.video 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.4 }}
+            transition={{ duration: 3 }}
+            autoPlay 
+            loop 
+            muted 
+            playsInline
+            className="w-full h-full object-cover scale-105"
+          >
+            {/* Using a calm abstract particle/light video from a reliable CDN */}
+            <source src="https://cdn.pixabay.com/video/2020/05/17/39327-422896564_large.mp4" type="video/mp4" />
+            <source src="https://cdn.pixabay.com/video/2022/11/01/137351-766779162_large.mp4" type="video/mp4" />
+          </motion.video>
+        </div>
       
       <div className="container mx-auto px-6 relative z-20 flex flex-col items-center text-center">
         <motion.div

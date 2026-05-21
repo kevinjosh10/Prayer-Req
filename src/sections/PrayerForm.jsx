@@ -9,7 +9,7 @@ const categories = [
 ];
 
 export default function PrayerForm() {
-  const [formData, setFormData] = useState({ name: '', request: '', category: '' });
+  const [formData, setFormData] = useState({ name: '', request: '', category: '', isPublic: true });
   const [status, setStatus] = useState('idle'); // idle, loading, success, error
   const [errorMessage, setErrorMessage] = useState('');
   const [prayerCode, setPrayerCode] = useState('');
@@ -28,7 +28,7 @@ export default function PrayerForm() {
       });
       setPrayerCode(result.prayerCode);
       setStatus('success');
-      setFormData({ name: '', request: '', category: '' });
+      setFormData({ name: '', request: '', category: '', isPublic: true });
       
       // Reset form after 15 seconds instead of 5 to give them time to copy the code
       setTimeout(() => {
@@ -59,33 +59,95 @@ export default function PrayerForm() {
 
         <div className="glass-card rounded-3xl p-8 md:p-10 shadow-2xl relative overflow-hidden">
           <AnimatePresence mode="wait">
-            {status === 'success' ? (
               <motion.div
                 key="success"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                className="flex flex-col items-center justify-center text-center py-8"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="flex flex-col items-center justify-center text-center py-12 relative"
               >
-                <div className="w-20 h-20 rounded-full bg-[var(--color-gold-500)]/20 flex items-center justify-center mb-6">
-                  <CheckCircle2 size={40} className="text-[var(--color-gold-400)]" />
+                {/* Crazy Explosion Animation using Framer Motion */}
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
+                  <motion.div
+                    initial={{ scale: 0, opacity: 1 }}
+                    animate={{ scale: [0, 4, 8], opacity: [1, 0.8, 0] }}
+                    transition={{ duration: 1.5, ease: "easeOut" }}
+                    className="absolute w-32 h-32 bg-[var(--color-gold-500)] rounded-full blur-2xl mix-blend-screen"
+                  />
+                  {[...Array(12)].map((_, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ scale: 0, x: 0, y: 0, opacity: 1 }}
+                      animate={{ 
+                        scale: [0, Math.random() * 2 + 1, 0],
+                        x: (Math.random() - 0.5) * 400,
+                        y: (Math.random() - 0.5) * 400,
+                        opacity: [1, 1, 0]
+                      }}
+                      transition={{ duration: 1.5 + Math.random(), ease: "easeOut" }}
+                      className="absolute w-2 h-2 bg-white rounded-full shadow-[0_0_10px_2px_var(--color-gold-400)]"
+                    />
+                  ))}
                 </div>
-                <h3 className="text-2xl font-medium mb-3">Your prayer has been received.</h3>
-                <p className="text-zinc-400 font-light mb-8">Tonight, someone will pray for you.</p>
+
+                <motion.div
+                  initial={{ scale: 0, rotate: -180 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  transition={{ type: "spring", stiffness: 200, damping: 20, delay: 0.2 }}
+                  className="w-24 h-24 rounded-full bg-[var(--color-gold-500)]/10 border border-[var(--color-gold-500)]/30 flex items-center justify-center mb-8 relative z-10 shadow-[0_0_50px_rgba(232,208,141,0.2)]"
+                >
+                  <CheckCircle2 size={48} className="text-[var(--color-gold-400)] drop-shadow-[0_0_10px_rgba(232,208,141,0.5)]" />
+                </motion.div>
                 
-                <div className="w-full bg-zinc-900/80 border border-zinc-800 rounded-2xl p-6 text-center">
-                  <p className="text-xs text-zinc-500 uppercase tracking-widest mb-2 font-semibold">Your Secret Prayer Code</p>
-                  <div className="flex items-center justify-center gap-4">
-                    <span className="text-3xl font-mono text-gold-400 font-medium tracking-wider">{prayerCode}</span>
+                <motion.h3 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 }}
+                  className="text-3xl font-medium mb-3 relative z-10 text-white"
+                >
+                  Your prayer is received.
+                </motion.h3>
+                <motion.p 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.8 }}
+                  className="text-zinc-300 font-light mb-10 relative z-10"
+                >
+                  Tonight, someone will pray for you.
+                </motion.p>
+                
+                <motion.div 
+                  initial={{ opacity: 0, y: 30, scale: 0.9 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{ type: "spring", delay: 1.2, duration: 0.8 }}
+                  className="w-full bg-black/60 backdrop-blur-xl border border-white/10 rounded-3xl p-8 text-center relative z-10 shadow-2xl overflow-hidden group"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[var(--color-gold-500)]/10 to-transparent -translate-x-full group-hover:animate-[shimmer_2s_infinite] pointer-events-none" />
+                  
+                  <p className="text-xs text-[var(--color-gold-500)] uppercase tracking-[0.2em] mb-4 font-semibold">Your Secret Prayer Code</p>
+                  
+                  <div className="flex items-center justify-center gap-4 mb-6">
+                    <motion.span 
+                      initial={{ letterSpacing: "1em", filter: "blur(10px)" }}
+                      animate={{ letterSpacing: "0.1em", filter: "blur(0px)" }}
+                      transition={{ duration: 1.5, delay: 1.5, ease: "easeOut" }}
+                      className="text-4xl md:text-5xl font-mono text-white font-medium drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]"
+                    >
+                      {prayerCode}
+                    </motion.span>
                   </div>
-                  <p className="text-zinc-500 text-sm font-light mt-4">Save this code. You can use it to check when your prayer has been prayed for.</p>
+                  
+                  <p className="text-zinc-400 text-sm font-light mb-6">
+                    Save this code. You can use it anytime to check if your prayer has been lifted up.
+                  </p>
+                  
                   <button 
                     onClick={copyCode}
-                    className="mt-4 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg text-sm transition-colors"
+                    className="px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl text-sm transition-all border border-white/5 hover:border-white/20 flex items-center justify-center gap-2 mx-auto"
                   >
-                    Copy Code
+                    Copy to Clipboard
                   </button>
-                </div>
+                </motion.div>
               </motion.div>
             ) : (
               <motion.form
@@ -136,6 +198,19 @@ export default function PrayerForm() {
                     placeholder="Pour out your heart..."
                     className="w-full bg-zinc-900/50 border border-zinc-800 rounded-xl px-4 py-3 text-zinc-200 focus:outline-none focus:border-[var(--color-gold-500)]/50 focus:ring-1 focus:ring-[var(--color-gold-500)]/50 transition-all placeholder:text-zinc-600 font-light resize-none"
                   ></textarea>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    id="isPublic"
+                    checked={formData.isPublic}
+                    onChange={(e) => setFormData({...formData, isPublic: e.target.checked})}
+                    className="w-5 h-5 rounded border-zinc-800 bg-zinc-900/50 text-[var(--color-gold-500)] focus:ring-[var(--color-gold-500)]/50 cursor-pointer accent-[var(--color-gold-500)]"
+                  />
+                  <label htmlFor="isPublic" className="text-sm text-zinc-400 font-light cursor-pointer select-none flex-1">
+                    Allow others to see and pray for my request on the Community Wall
+                  </label>
                 </div>
 
                 {status === 'error' && (
