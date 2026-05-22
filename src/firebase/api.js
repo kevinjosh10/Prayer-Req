@@ -153,17 +153,15 @@ export const submitTestimony = async (data) => {
 };
 
 export const listenToTestimonies = (callback) => {
-  const testimoniesRef = ref(db, 'testimonies');
+  const testimoniesRef = query(ref(db, 'testimonies'), orderByChild('createdAt'));
   return onValue(testimoniesRef, (snapshot) => {
     const data = snapshot.val();
-    const items = [];
-    if (data) {
-      Object.keys(data).forEach(key => {
-        items.push({ id: key, ...data[key] });
-      });
-    }
-    items.sort((a, b) => b.createdAt - a.createdAt);
-    callback(items);
+    const testimoniesList = data ? Object.keys(data).map(key => ({
+      id: key,
+      ...data[key]
+    })).sort((a, b) => b.createdAt - a.createdAt) : [];
+    
+    callback(testimoniesList);
   });
 };
 
@@ -177,4 +175,9 @@ export const incrementTestimonyPraise = async (id) => {
 export const deleteTestimony = async (id) => {
   const testimonyRef = ref(db, `testimonies/${id}`);
   await remove(testimonyRef);
+};
+
+export const flagTestimony = async (id) => {
+  const testimonyRef = ref(db, `testimonies/${id}`);
+  await update(testimonyRef, { flagged: true });
 };

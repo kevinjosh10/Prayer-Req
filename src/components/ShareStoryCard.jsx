@@ -2,7 +2,7 @@ import React, { forwardRef } from 'react';
 
 const ShareStoryCard = forwardRef(({ type, title, content, category, verse }, ref) => {
   return (
-    <div style={{ position: 'fixed', left: 0, top: 0, width: 0, height: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: -9999 }}>
+    <div style={{ position: 'fixed', left: 0, top: 0, opacity: 0.01, pointerEvents: 'none', zIndex: -100 }}>
       <div
         ref={ref}
         className="w-[1080px] h-[1920px] bg-[#09090b] flex flex-col justify-center items-center p-20 font-sans text-white overflow-hidden relative"

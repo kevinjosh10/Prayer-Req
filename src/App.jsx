@@ -6,6 +6,8 @@ import PrayerForm from './sections/PrayerForm';
 import CommunityWall from './sections/CommunityWall';
 import TestimoniesWall from './sections/TestimoniesWall';
 import AdminPanel from './components/AdminPanel';
+import PrayersPage from './pages/PrayersPage';
+import TestimoniesPage from './pages/TestimoniesPage';
 import { Shield } from 'lucide-react';
 import DailyBanner from './sections/DailyBanner';
 import HopeSparks from './components/HopeSparks';
@@ -29,8 +31,8 @@ function LandingPage() {
       <GlobalImpact />
       <BibleVerses />
       <PrayerForm />
-      <CommunityWall />
-      <TestimoniesWall />
+      <CommunityWall limit={3} />
+      <TestimoniesWall limit={3} />
       
       <footer className="py-16 border-t border-zinc-800/50 relative">
         <div className="container mx-auto px-6 text-center max-w-3xl">
@@ -54,6 +56,8 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<LandingPage />} />
+        <Route path="/prayers" element={<PrayersPage />} />
+        <Route path="/testimonies" element={<TestimoniesPage />} />
         <Route path="/admin" element={<AdminPanel />} />
       </Routes>
     </Router>

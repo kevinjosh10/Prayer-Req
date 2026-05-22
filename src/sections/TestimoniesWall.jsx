@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, User, Share2 } from 'lucide-react';
 import { listenToTestimonies, incrementTestimonyPraise } from '../firebase/api';
 import html2canvas from 'html2canvas';
 import ShareStoryCard from '../components/ShareStoryCard';
+import TestimonyCard from '../components/TestimonyCard';
+import { Link } from 'react-router-dom';
 import { useRef } from 'react';
 
-export default function TestimoniesWall() {
+export default function TestimoniesWall({ limit }) {
   const [testimonies, setTestimonies] = useState([]);
   const [praisedIds, setPraisedIds] = useState(new Set());
   const [shareData, setShareData] = useState(null);
@@ -100,7 +101,7 @@ export default function TestimoniesWall() {
 
         <div className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6">
           <AnimatePresence mode="popLayout">
-            {testimonies.slice(0, 24).map((testimony) => (
+            {(limit ? testimonies.slice(0, limit) : testimonies).map((testimony) => (
               <TestimonyCard 
                 key={testimony.id} 
                 testimony={testimony} 
@@ -113,6 +114,17 @@ export default function TestimoniesWall() {
             ))}
           </AnimatePresence>
         </div>
+
+        {limit && testimonies.length > limit && (
+          <div className="mt-12 text-center">
+            <Link 
+              to="/testimonies" 
+              className="inline-flex items-center gap-2 px-8 py-4 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 rounded-full font-medium transition-all hover:scale-105 border border-zinc-800 hover:border-zinc-700 shadow-lg"
+            >
+              Read All Testimonies &rarr;
+            </Link>
+          </div>
+        )}
       </div>
 
       {shareData && (
@@ -128,97 +140,3 @@ export default function TestimoniesWall() {
   );
 }
 
-function TestimonyCard({ testimony, handlePraise, handleShare, praisedIds, getTimeAgo, isGenerating }) {
-  const [isBursting, setIsBursting] = useState(false);
-
-  const onPraiseClick = () => {
-    if (praisedIds.has(testimony.id)) return;
-    setIsBursting(true);
-    handlePraise(testimony.id);
-    setTimeout(() => setIsBursting(false), 2000);
-  };
-
-  return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.9 }}
-      transition={{ duration: 0.3 }}
-      className="break-inside-avoid bg-zinc-900/40 rounded-3xl p-6 md:p-8 hover:bg-zinc-900/80 transition-colors border border-[var(--color-gold-500)]/20 relative group inline-block w-full overflow-hidden shadow-[0_4px_30px_rgba(232,208,141,0.05)] hover:shadow-[0_4px_30px_rgba(232,208,141,0.1)]"
-    >
-      <div className="relative z-10">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2 text-[var(--color-gold-400)]">
-            <User size={14} />
-            <span className="text-sm font-medium">{testimony.name || 'Anonymous'}</span>
-          </div>
-          <div className="flex items-center gap-1 text-zinc-500 text-xs font-light">
-            <Clock size={12} />
-            <span>{getTimeAgo(testimony.createdAt)}</span>
-          </div>
-        </div>
-        
-        <h3 className="text-lg font-semibold text-white mb-2">{testimony.title}</h3>
-        
-        <p className="text-zinc-300 font-light leading-relaxed mb-6 whitespace-pre-wrap">
-          {testimony.content}
-        </p>
-        
-        <div className="flex items-center justify-between border-t border-[var(--color-gold-500)]/10 pt-4 mt-auto">
-          <span className="text-xs text-[var(--color-gold-500)]/70 uppercase tracking-wider font-semibold">
-            {testimony.category || 'Praise'}
-          </span>
-          
-          <div className="relative">
-            <button
-              onClick={onPraiseClick}
-              disabled={praisedIds.has(testimony.id)}
-              className={`flex items-center gap-2 text-xs font-medium px-4 py-2 rounded-full transition-all relative z-10 ${
-                praisedIds.has(testimony.id)
-                  ? 'bg-[var(--color-gold-500)]/20 text-[var(--color-gold-400)] border border-[var(--color-gold-500)]/30'
-                  : 'bg-zinc-950 text-zinc-400 hover:text-[var(--color-gold-400)] hover:bg-[var(--color-gold-500)]/10 border border-zinc-800 hover:border-[var(--color-gold-500)]/30'
-              }`}
-            >
-              <span className={praisedIds.has(testimony.id) || isBursting ? "scale-110 transition-transform" : ""}>🙌</span>
-              <span>
-                {(testimony.praises || 0) + (praisedIds.has(testimony.id) ? (testimony.praises ? 0 : 1) : 0)} Praise God
-              </span>
-            </button>
-            
-            <button
-              onClick={() => handleShare(testimony)}
-              disabled={isGenerating}
-              className="ml-3 p-2 rounded-full bg-zinc-900 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors disabled:opacity-50"
-              title="Share to Instagram Story"
-            >
-              <Share2 size={16} />
-            </button>
-            
-            {/* Particle Burst Animation */}
-            <AnimatePresence>
-              {isBursting && (
-                <div className="absolute inset-0 pointer-events-none z-0 flex items-center justify-center">
-                  {[...Array(8)].map((_, i) => (
-                    <motion.div
-                      key={i}
-                      initial={{ opacity: 1, scale: 0, x: 0, y: 0 }}
-                      animate={{
-                        opacity: [1, 1, 0],
-                        scale: [0, 1.5, 0],
-                        x: (Math.random() - 0.5) * 60,
-                        y: (Math.random() - 0.5) * 60 - 20,
-                      }}
-                      transition={{ duration: 1, ease: "easeOut", delay: Math.random() * 0.2 }}
-                      className="absolute w-2 h-2 rounded-full bg-[var(--color-gold-400)] shadow-[0_0_10px_var(--color-gold-500)]"
-                    />
-                  ))}
-                </div>
-              )}
-            </AnimatePresence>
-          </div>
-        </div>
-      </div>
-    </motion.div>
-  );
-}
