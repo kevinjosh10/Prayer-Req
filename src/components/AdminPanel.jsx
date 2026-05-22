@@ -12,6 +12,7 @@ export default function AdminPanel() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState('All');
   const [selectedPrayer, setSelectedPrayer] = useState(null);
+  const [confirmDialog, setConfirmDialog] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -40,24 +41,46 @@ export default function AdminPanel() {
     }
   };
 
-  const handleToggleVisibility = async (id, currentIsPublic) => {
-    if (!window.confirm(`Are you sure you want to make this prayer ${currentIsPublic !== false ? 'Private (hide from wall)' : 'Public (show on wall)'}?`)) return;
-    try {
-      await updatePrayerVisibility(id, currentIsPublic === false ? true : false);
-    } catch (e) {
-      console.error(e);
-      alert("Failed to update visibility");
-    }
+  const handleToggleVisibility = (id, currentIsPublic) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: currentIsPublic !== false ? 'Hide Prayer' : 'Show Prayer',
+      message: `Are you sure you want to make this prayer ${currentIsPublic !== false ? 'Private (hide from wall)' : 'Public (show on wall)'}?`,
+      actionLabel: currentIsPublic !== false ? 'Yes, Hide' : 'Yes, Show',
+      actionColor: 'bg-zinc-700 text-white hover:bg-zinc-600',
+      onConfirm: async () => {
+        try {
+          await updatePrayerVisibility(id, currentIsPublic === false ? true : false);
+          if (selectedPrayer && selectedPrayer.id === id) {
+            setSelectedPrayer(prev => ({...prev, isPublic: currentIsPublic === false ? true : false}));
+          }
+        } catch (e) {
+          console.error(e);
+          alert("Failed to update visibility");
+        }
+      }
+    });
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this prayer?")) return;
-    try {
-      await deletePrayerRequest(id);
-    } catch (e) {
-      console.error(e);
-      alert("Failed to delete prayer");
-    }
+  const handleDelete = (id) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Delete Prayer',
+      message: "Are you sure you want to completely delete this prayer? This action cannot be undone.",
+      actionLabel: 'Yes, Delete',
+      actionColor: 'bg-red-500 hover:bg-red-600 text-white',
+      onConfirm: async () => {
+        try {
+          await deletePrayerRequest(id);
+          if (selectedPrayer && selectedPrayer.id === id) {
+            setSelectedPrayer(null);
+          }
+        } catch (e) {
+          console.error(e);
+          alert("Failed to delete prayer");
+        }
+      }
+    });
   };
 
   if (!isAuthenticated) {
@@ -354,19 +377,13 @@ export default function AdminPanel() {
                 
                 <div className="flex gap-4 w-full sm:w-auto flex-wrap sm:flex-nowrap">
                   <button
-                    onClick={() => {
-                      handleDelete(selectedPrayer.id);
-                      setSelectedPrayer(null);
-                    }}
+                    onClick={() => handleDelete(selectedPrayer.id)}
                     className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-xl transition-colors font-medium text-sm"
                   >
                     <Trash2 size={16} /> Delete
                   </button>
                   <button
-                    onClick={() => {
-                      handleToggleVisibility(selectedPrayer.id, selectedPrayer.isPublic);
-                      setSelectedPrayer({...selectedPrayer, isPublic: selectedPrayer.isPublic === false ? true : false});
-                    }}
+                    onClick={() => handleToggleVisibility(selectedPrayer.id, selectedPrayer.isPublic)}
                     className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-xl transition-colors font-medium text-sm"
                   >
                     {selectedPrayer.isPublic !== false ? <><EyeOff size={16} /> Hide</> : <><Eye size={16} /> Show</>}
@@ -387,6 +404,46 @@ export default function AdminPanel() {
                     {selectedPrayer.prayedFor ? 'Mark Unprayed' : 'Mark Prayed'}
                   </button>
                 </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {confirmDialog?.isOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setConfirmDialog(null)}
+              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 w-full max-w-sm relative z-10 shadow-2xl text-center"
+            >
+              <h3 className="text-xl font-semibold text-white mb-2">{confirmDialog.title}</h3>
+              <p className="text-zinc-400 text-sm mb-8 font-light leading-relaxed">{confirmDialog.message}</p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setConfirmDialog(null)}
+                  className="flex-1 py-3 rounded-xl bg-zinc-800 text-zinc-300 hover:bg-zinc-700 transition-colors font-medium text-sm"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={async () => {
+                    await confirmDialog.onConfirm();
+                    setConfirmDialog(null);
+                  }}
+                  className={`flex-1 py-3 rounded-xl transition-colors font-medium text-sm ${confirmDialog.actionColor}`}
+                >
+                  {confirmDialog.actionLabel}
+                </button>
               </div>
             </motion.div>
           </div>
