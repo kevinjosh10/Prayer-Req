@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Send, Heart } from 'lucide-react';
 import { submitTestimony } from '../firebase/api';
 
-const CATEGORIES = ["Healing", "Provision", "Relationship", "Spiritual", "Other"];
+const CATEGORIES = ["Healing", "Provision", "Relationship", "Spiritual", "Deliverance", "Family", "Career", "Peace", "Other"];
 
 export default function TestimonyModal({ isOpen, onClose }) {
   const [name, setName] = useState('');
