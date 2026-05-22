@@ -9,11 +9,13 @@ import { Shield } from 'lucide-react';
 import DailyBanner from './sections/DailyBanner';
 import HopeSparks from './components/HopeSparks';
 import FloatingNav from './components/FloatingNav';
+import LiveFeed from './components/LiveFeed';
 
 function LandingPage() {
   return (
     <div className="relative min-h-screen font-sans">
       <FloatingNav />
+      <LiveFeed />
       <DailyBanner />
       <HopeSparks />
       {/* Subtle background glow effects */}

@@ -5,7 +5,10 @@ import { submitPrayerRequest } from '../firebase/api';
 
 const categories = [
   "Healing", "Anxiety", "Family", "Financial", 
-  "Depression", "Relationship", "Spiritual", "Other"
+  "Depression", "Relationship", "Spiritual", 
+  "Career", "Addiction", "Grief", "Guidance", 
+  "Protection", "Marriage", "Loneliness", "Peace",
+  "Praise", "Deliverance", "Other"
 ];
 
 export default function PrayerForm() {
@@ -16,7 +19,7 @@ export default function PrayerForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.request.trim()) return;
+    if (!formData.request.trim() || !formData.category) return;
 
     setStatus('loading');
     setErrorMessage('');
@@ -63,9 +66,10 @@ export default function PrayerForm() {
             {status === 'success' ? (
               <motion.div
                 key="success"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
+                initial={{ opacity: 0, scale: 0.95, filter: "blur(8px)" }}
+                animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+                exit={{ opacity: 0, scale: 1.05, filter: "blur(8px)" }}
+                transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
                 className="flex flex-col items-center justify-center text-center py-12 relative"
               >
                 {/* INSANE Explosion Animation using Framer Motion */}
@@ -195,9 +199,10 @@ export default function PrayerForm() {
             ) : (
               <motion.form
                 key="form"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20, filter: "blur(5px)" }}
+                transition={{ duration: 0.4, ease: "easeInOut" }}
                 onSubmit={handleSubmit}
                 className="space-y-6"
               >
@@ -213,14 +218,15 @@ export default function PrayerForm() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-zinc-400 mb-2">Category (Optional)</label>
+                  <label className="block text-sm font-medium text-zinc-400 mb-2">Category <span className="text-[var(--color-gold-500)]">*</span></label>
                   <div className="relative">
                     <select
+                      required
                       value={formData.category}
                       onChange={(e) => setFormData({...formData, category: e.target.value})}
                       className="w-full bg-zinc-900/50 border border-zinc-800 rounded-xl px-4 py-3 text-zinc-200 focus:outline-none focus:border-[var(--color-gold-500)]/50 focus:ring-1 focus:ring-[var(--color-gold-500)]/50 transition-all appearance-none font-light"
                     >
-                      <option value="" className="bg-zinc-900">Select a category...</option>
+                      <option value="" className="bg-zinc-900" disabled>Select a category...</option>
                       {categories.map(cat => (
                         <option key={cat} value={cat} className="bg-zinc-900">{cat}</option>
                       ))}
@@ -265,11 +271,18 @@ export default function PrayerForm() {
 
                 <button
                   type="submit"
-                  disabled={status === 'loading' || !formData.request.trim()}
-                  className="w-full bg-zinc-100 text-zinc-900 rounded-xl py-4 font-medium flex items-center justify-center gap-2 hover:bg-white transition-all disabled:opacity-70 disabled:cursor-not-allowed group"
+                  disabled={status === 'loading' || !formData.request.trim() || !formData.category}
+                  className="w-full relative overflow-hidden bg-zinc-100 text-zinc-900 rounded-xl py-4 font-medium flex items-center justify-center gap-2 hover:bg-white transition-all disabled:opacity-70 disabled:cursor-not-allowed group"
                 >
                   {status === 'loading' ? (
-                    <Loader2 size={20} className="animate-spin text-zinc-600" />
+                    <motion.div 
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="flex items-center gap-3"
+                    >
+                      <Loader2 size={20} className="animate-spin text-zinc-600" />
+                      <span className="text-zinc-600 animate-pulse">Sending prayer...</span>
+                    </motion.div>
                   ) : (
                     <>
                       Send Prayer Request

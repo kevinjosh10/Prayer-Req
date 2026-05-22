@@ -70,6 +70,17 @@ export const listenToNewPrayers = (callback) => {
   });
 };
 
+import { onChildChanged } from "firebase/database";
+
+// Listen specifically for updates to existing prayers (like when someone clicks Pray)
+export const listenToPrayerInteractions = (callback) => {
+  const requestsRef = ref(db, 'prayerRequests');
+  
+  return onChildChanged(requestsRef, (snapshot) => {
+    callback(snapshot.val());
+  });
+};
+
 // Check prayer status by code
 export const checkPrayerStatusByCode = async (code) => {
   const requestsRef = ref(db, 'prayerRequests');

@@ -109,6 +109,7 @@ export default function CommunityWall() {
 function PrayerCard({ prayer, handlePray, prayedForIds, getTimeAgo }) {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isHovering, setIsHovering] = useState(false);
+  const [isBursting, setIsBursting] = useState(false);
 
   const handleMouseMove = (e) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -116,6 +117,13 @@ function PrayerCard({ prayer, handlePray, prayedForIds, getTimeAgo }) {
       x: e.clientX - rect.left,
       y: e.clientY - rect.top,
     });
+  };
+
+  const onPrayClick = () => {
+    if (prayedForIds.has(prayer.id)) return;
+    setIsBursting(true);
+    handlePray(prayer.id);
+    setTimeout(() => setIsBursting(false), 2000);
   };
 
   return (
@@ -166,23 +174,47 @@ function PrayerCard({ prayer, handlePray, prayedForIds, getTimeAgo }) {
             {prayer.category !== 'Uncategorized' ? prayer.category : 'Other'}
           </span>
           
-          <button
-            onClick={() => handlePray(prayer.id)}
-            disabled={prayedForIds.has(prayer.id)}
-            className={`flex items-center gap-2 text-xs font-medium px-4 py-2 rounded-full transition-all ${
-              prayedForIds.has(prayer.id)
-                ? 'bg-red-500/10 text-red-400 border border-red-500/20'
-                : 'bg-zinc-900 text-zinc-400 hover:text-red-400 hover:bg-red-500/10 border border-zinc-800 hover:border-red-500/20'
-            }`}
-          >
-            <Heart 
-              size={14} 
-              className={prayedForIds.has(prayer.id) ? "fill-red-400" : ""} 
-            />
-            <span>
-              {(prayer.communityPrayers || 0) + (prayedForIds.has(prayer.id) ? (prayer.communityPrayers ? 0 : 1) : 0)} Praying
-            </span>
-          </button>
+          <div className="relative">
+            <button
+              onClick={onPrayClick}
+              disabled={prayedForIds.has(prayer.id)}
+              className={`flex items-center gap-2 text-xs font-medium px-4 py-2 rounded-full transition-all relative z-10 ${
+                prayedForIds.has(prayer.id)
+                  ? 'bg-red-500/10 text-red-400 border border-red-500/20'
+                  : 'bg-zinc-900 text-zinc-400 hover:text-red-400 hover:bg-red-500/10 border border-zinc-800 hover:border-red-500/20'
+              }`}
+            >
+              <Heart 
+                size={14} 
+                className={prayedForIds.has(prayer.id) || isBursting ? "fill-red-400 text-red-400" : ""} 
+              />
+              <span>
+                {(prayer.communityPrayers || 0) + (prayedForIds.has(prayer.id) ? (prayer.communityPrayers ? 0 : 1) : 0)} Praying
+              </span>
+            </button>
+            
+            {/* Particle Burst Animation */}
+            <AnimatePresence>
+              {isBursting && (
+                <div className="absolute inset-0 pointer-events-none z-0 flex items-center justify-center">
+                  {[...Array(8)].map((_, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 1, scale: 0, x: 0, y: 0 }}
+                      animate={{
+                        opacity: [1, 1, 0],
+                        scale: [0, 1.5, 0],
+                        x: (Math.random() - 0.5) * 60,
+                        y: (Math.random() - 0.5) * 60 - 20,
+                      }}
+                      transition={{ duration: 1, ease: "easeOut", delay: Math.random() * 0.2 }}
+                      className="absolute w-2 h-2 rounded-full bg-[var(--color-gold-400)] shadow-[0_0_10px_var(--color-gold-500)]"
+                    />
+                  ))}
+                </div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
       </div>
     </motion.div>
