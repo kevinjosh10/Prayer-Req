@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, Clock, User, Filter } from 'lucide-react';
-import { listenToPrayerRequests, incrementCommunityPrayer } from '../firebase/api';
+import { Heart, Clock, User, Filter, Flag } from 'lucide-react';
+import { listenToPrayerRequests, incrementCommunityPrayer, flagPrayerRequest } from '../firebase/api';
 
 const ALL_CATEGORIES = ["All", "Healing", "Anxiety", "Family", "Financial", "Depression", "Relationship", "Spiritual", "Other"];
 
@@ -34,6 +34,20 @@ export default function CommunityWall() {
         next.delete(id);
         return next;
       });
+    }
+  };
+
+  const handleFlag = async (id) => {
+    if (!window.confirm("Are you sure you want to flag this prayer as inappropriate? It will be hidden immediately.")) return;
+    
+    // Optimistic UI update
+    setPrayers(prev => prev.filter(p => p.id !== id));
+    
+    try {
+      await flagPrayerRequest(id);
+    } catch (e) {
+      console.error("Failed to flag prayer:", e);
+      // Let the realtime listener restore it if it failed
     }
   };
 
@@ -87,7 +101,7 @@ export default function CommunityWall() {
         <div className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6">
           <AnimatePresence mode="popLayout">
             {filteredPrayers.map((prayer) => (
-              <PrayerCard key={prayer.id} prayer={prayer} handlePray={handlePray} prayedForIds={prayedForIds} getTimeAgo={getTimeAgo} />
+              <PrayerCard key={prayer.id} prayer={prayer} handlePray={handlePray} handleFlag={handleFlag} prayedForIds={prayedForIds} getTimeAgo={getTimeAgo} />
             ))}
           </AnimatePresence>
         </div>
@@ -106,7 +120,7 @@ export default function CommunityWall() {
   );
 }
 
-function PrayerCard({ prayer, handlePray, prayedForIds, getTimeAgo }) {
+function PrayerCard({ prayer, handlePray, handleFlag, prayedForIds, getTimeAgo }) {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isHovering, setIsHovering] = useState(false);
   const [isBursting, setIsBursting] = useState(false);
@@ -159,9 +173,18 @@ function PrayerCard({ prayer, handlePray, prayedForIds, getTimeAgo }) {
             <User size={14} />
             <span className="text-sm font-medium">{prayer.name || 'Anonymous'}</span>
           </div>
-          <div className="flex items-center gap-1 text-zinc-600 text-xs font-light">
-            <Clock size={12} />
-            <span>{getTimeAgo(prayer.createdAt)}</span>
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => handleFlag(prayer.id)}
+              className="text-zinc-600 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
+              title="Flag as inappropriate"
+            >
+              <Flag size={14} />
+            </button>
+            <div className="flex items-center gap-1 text-zinc-600 text-xs font-light">
+              <Clock size={12} />
+              <span>{getTimeAgo(prayer.createdAt)}</span>
+            </div>
           </div>
         </div>
         

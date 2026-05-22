@@ -113,10 +113,19 @@ export const markAsPrayed = async (id, status = true) => {
 };
 
 // Update prayer visibility (public/private)
-export const updatePrayerVisibility = async (id, isPublic) => {
+export const updatePrayerVisibility = async (id, isPublic, unflag = false) => {
+  const requestRef = ref(db, `prayerRequests/${id}`);
+  const updates = { isPublic: isPublic };
+  if (unflag) updates.flagged = false;
+  await update(requestRef, updates);
+};
+
+// Flag a prayer request (hides it and marks as flagged)
+export const flagPrayerRequest = async (id) => {
   const requestRef = ref(db, `prayerRequests/${id}`);
   await update(requestRef, {
-    isPublic: isPublic
+    isPublic: false,
+    flagged: true
   });
 };
 
@@ -124,4 +133,43 @@ export const updatePrayerVisibility = async (id, isPublic) => {
 export const deletePrayerRequest = async (id) => {
   const requestRef = ref(db, `prayerRequests/${id}`);
   await remove(requestRef);
+};
+
+// ==========================================
+// TESTIMONIES / PRAISE REPORTS
+// ==========================================
+
+export const submitTestimony = async (data) => {
+  const testimoniesRef = ref(db, 'testimonies');
+  const newRef = push(testimoniesRef);
+  
+  await set(newRef, {
+    ...data,
+    createdAt: Date.now(),
+    praises: 0
+  });
+  
+  return newRef.key;
+};
+
+export const listenToTestimonies = (callback) => {
+  const testimoniesRef = ref(db, 'testimonies');
+  return onValue(testimoniesRef, (snapshot) => {
+    const data = snapshot.val();
+    const items = [];
+    if (data) {
+      Object.keys(data).forEach(key => {
+        items.push({ id: key, ...data[key] });
+      });
+    }
+    items.sort((a, b) => b.createdAt - a.createdAt);
+    callback(items);
+  });
+};
+
+export const incrementTestimonyPraise = async (id) => {
+  const testimonyRef = ref(db, `testimonies/${id}/praises`);
+  await runTransaction(testimonyRef, (currentCount) => {
+    return (currentCount || 0) + 1;
+  });
 };

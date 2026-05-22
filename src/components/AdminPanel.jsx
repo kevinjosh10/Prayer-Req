@@ -41,7 +41,7 @@ export default function AdminPanel() {
     }
   };
 
-  const handleToggleVisibility = (id, currentIsPublic) => {
+  const handleToggleVisibility = (id, currentIsPublic, isCurrentlyFlagged) => {
     setConfirmDialog({
       isOpen: true,
       title: currentIsPublic !== false ? 'Hide Prayer' : 'Show Prayer',
@@ -50,9 +50,13 @@ export default function AdminPanel() {
       actionColor: 'bg-zinc-700 text-white hover:bg-zinc-600',
       onConfirm: async () => {
         try {
-          await updatePrayerVisibility(id, currentIsPublic === false ? true : false);
+          await updatePrayerVisibility(id, currentIsPublic === false ? true : false, isCurrentlyFlagged);
           if (selectedPrayer && selectedPrayer.id === id) {
-            setSelectedPrayer(prev => ({...prev, isPublic: currentIsPublic === false ? true : false}));
+            setSelectedPrayer(prev => ({
+              ...prev, 
+              isPublic: currentIsPublic === false ? true : false,
+              flagged: isCurrentlyFlagged ? false : prev.flagged
+            }));
           }
         } catch (e) {
           console.error(e);
@@ -133,8 +137,9 @@ export default function AdminPanel() {
                           req.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           req.category?.toLowerCase().includes(searchTerm.toLowerCase());
     
-    if (filter === 'Unprayed') return matchesSearch && !req.prayedFor;
-    if (filter === 'Prayed') return matchesSearch && req.prayedFor;
+    if (filter === 'Unprayed') return matchesSearch && !req.prayedFor && req.isPublic !== false;
+    if (filter === 'Prayed') return matchesSearch && req.prayedFor && req.isPublic !== false;
+    if (filter === 'Flagged') return matchesSearch && req.flagged === true;
     return matchesSearch;
   });
 
@@ -217,8 +222,8 @@ export default function AdminPanel() {
                 />
               </div>
               
-              <div className="flex bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden p-1">
-                {['All', 'Unprayed', 'Prayed'].map((f) => (
+              <div className="flex bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden p-1 flex-wrap sm:flex-nowrap">
+                {['All', 'Unprayed', 'Prayed', 'Flagged'].map((f) => (
                   <button
                     key={f}
                     onClick={() => setFilter(f)}
@@ -279,10 +284,12 @@ export default function AdminPanel() {
                         </span>
                       </td>
                       <td className="py-4 px-4 align-top text-xs text-zinc-400">
-                        {req.isPublic !== false ? (
+                        {req.flagged ? (
+                          <span className="text-red-500 font-bold bg-red-500/10 px-2 py-1 rounded">FLAGGED</span>
+                        ) : req.isPublic !== false ? (
                           <span className="text-zinc-300">Public</span>
                         ) : (
-                          <span className="text-red-400 font-semibold">Private</span>
+                          <span className="text-zinc-500 font-semibold">Private</span>
                         )}
                       </td>
                       <td className="py-4 px-4 align-top text-sm text-zinc-400 whitespace-nowrap">
@@ -297,9 +304,9 @@ export default function AdminPanel() {
                       </td>
                       <td className="py-4 px-4 align-top text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                         <button
-                          onClick={() => handleToggleVisibility(req.id, req.isPublic)}
+                          onClick={() => handleToggleVisibility(req.id, req.isPublic, req.flagged)}
                           className="p-2 text-zinc-400 hover:text-[var(--color-gold-400)] hover:bg-[var(--color-gold-500)]/10 rounded-lg transition-all mr-2 inline-flex items-center justify-center bg-zinc-900/50"
-                          title={req.isPublic !== false ? "Make Private (Hide)" : "Make Public (Show)"}
+                          title={req.isPublic !== false ? "Make Private (Hide)" : "Make Public (Show & Unflag)"}
                         >
                           {req.isPublic !== false ? <EyeOff size={16} /> : <Eye size={16} />}
                         </button>
@@ -383,7 +390,7 @@ export default function AdminPanel() {
                     <Trash2 size={16} /> Delete
                   </button>
                   <button
-                    onClick={() => handleToggleVisibility(selectedPrayer.id, selectedPrayer.isPublic)}
+                    onClick={() => handleToggleVisibility(selectedPrayer.id, selectedPrayer.isPublic, selectedPrayer.flagged)}
                     className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-xl transition-colors font-medium text-sm"
                   >
                     {selectedPrayer.isPublic !== false ? <><EyeOff size={16} /> Hide</> : <><Eye size={16} /> Show</>}

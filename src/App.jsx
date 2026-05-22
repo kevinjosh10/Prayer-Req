@@ -4,6 +4,7 @@ import GlobalImpact from './sections/GlobalImpact';
 import BibleVerses from './sections/BibleVerses';
 import PrayerForm from './sections/PrayerForm';
 import CommunityWall from './sections/CommunityWall';
+import TestimoniesWall from './sections/TestimoniesWall';
 import AdminPanel from './components/AdminPanel';
 import { Shield } from 'lucide-react';
 import DailyBanner from './sections/DailyBanner';
@@ -29,6 +30,7 @@ function LandingPage() {
       <BibleVerses />
       <PrayerForm />
       <CommunityWall />
+      <TestimoniesWall />
       
       <footer className="py-16 border-t border-zinc-800/50 relative">
         <div className="container mx-auto px-6 text-center max-w-3xl">

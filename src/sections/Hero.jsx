@@ -1,10 +1,12 @@
 import { motion } from 'framer-motion';
-import { ArrowDown, Search, Share2, Check } from 'lucide-react';
+import { ArrowDown, Search, Share2, Check, Heart } from 'lucide-react';
 import { useState } from 'react';
 import CheckPrayerModal from '../components/CheckPrayerModal';
+import TestimonyModal from '../components/TestimonyModal';
 
 export default function Hero() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isTestimonyOpen, setIsTestimonyOpen] = useState(false);
   const [copied, setCopied] = useState(false);
 
   const scrollToForm = () => {
@@ -101,6 +103,12 @@ export default function Hero() {
             Submit a Prayer
           </button>
           <button 
+            onClick={() => setIsTestimonyOpen(true)}
+            className="px-8 py-4 bg-[var(--color-gold-500)] text-zinc-950 rounded-full font-medium hover:bg-[var(--color-gold-400)] hover:shadow-[0_0_20px_rgba(232,208,141,0.4)] transition-all duration-300 transform hover:-translate-y-1 flex items-center justify-center gap-2"
+          >
+            <Heart size={16} /> Share Testimony
+          </button>
+          <button 
             onClick={() => setIsModalOpen(true)}
             className="px-8 py-4 glass text-zinc-100 rounded-full font-medium hover:bg-white/10 transition-all duration-300 border border-white/10 flex items-center justify-center gap-2"
           >
@@ -132,6 +140,7 @@ export default function Hero() {
       </motion.div>
 
       <CheckPrayerModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      <TestimonyModal isOpen={isTestimonyOpen} onClose={() => setIsTestimonyOpen(false)} />
     </section>
   );
 }
