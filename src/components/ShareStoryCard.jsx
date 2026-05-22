@@ -2,11 +2,11 @@ import React, { forwardRef } from 'react';
 
 const ShareStoryCard = forwardRef(({ type, title, content, category, verse }, ref) => {
   return (
-    <div
-      ref={ref}
-      className="fixed top-[-9999px] left-[-9999px] w-[1080px] h-[1920px] bg-[#09090b] flex flex-col justify-center items-center p-20 font-sans text-white overflow-hidden"
-      style={{ zIndex: -9999 }}
-    >
+    <div style={{ position: 'fixed', left: 0, top: 0, width: 0, height: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: -9999 }}>
+      <div
+        ref={ref}
+        className="w-[1080px] h-[1920px] bg-[#09090b] flex flex-col justify-center items-center p-20 font-sans text-white overflow-hidden relative"
+      >
       {/* Background Effects */}
       <div className="absolute inset-0 z-0">
         <div className="absolute top-1/4 left-1/4 w-1/2 h-[800px] rounded-full bg-[var(--color-gold-600)] opacity-10 blur-[200px]"></div>
@@ -54,6 +54,7 @@ const ShareStoryCard = forwardRef(({ type, title, content, category, verse }, re
             </svg>
           </div>
           <p className="text-3xl font-medium text-white tracking-widest">WHISPERTOGOD.APP</p>
+        </div>
         </div>
       </div>
     </div>

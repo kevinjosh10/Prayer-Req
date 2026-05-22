@@ -1,27 +1,37 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { listenToPrayerRequests } from '../firebase/api';
-import { Globe2, Heart, Sparkles } from 'lucide-react';
+import { listenToPrayerRequests, listenToTestimonies } from '../firebase/api';
+import { Globe2, Heart, Sparkles, MessageCircleHeart } from 'lucide-react';
 
 export default function GlobalImpact() {
-  const [stats, setStats] = useState({ total: 0, answered: 0 });
+  const [stats, setStats] = useState({ total: 0, answered: 0, testimonies: 0 });
 
   useEffect(() => {
-    // We listen to the global requests to compute stats
-    const unsubscribe = listenToPrayerRequests((data) => {
+    const unsubscribePrayers = listenToPrayerRequests((data) => {
       let answeredCount = 0;
       data.forEach(prayer => {
         if (prayer.prayedFor) {
           answeredCount++;
         }
       });
-      setStats({
+      setStats(prev => ({
+        ...prev,
         total: data.length,
         answered: answeredCount
-      });
+      }));
     });
     
-    return () => unsubscribe();
+    const unsubscribeTestimonies = listenToTestimonies((data) => {
+      setStats(prev => ({
+        ...prev,
+        testimonies: data.length
+      }));
+    });
+    
+    return () => {
+      unsubscribePrayers();
+      unsubscribeTestimonies();
+    };
   }, []);
 
   return (
@@ -65,6 +75,25 @@ export default function GlobalImpact() {
             <p className="text-[var(--color-gold-500)]/80 uppercase tracking-widest text-sm font-semibold flex items-center gap-2">
               Prayers Answered <Sparkles size={14} />
             </p>
+          </motion.div>
+        </div>
+
+        <div className="w-[1px] h-24 bg-gradient-to-b from-transparent via-[var(--color-gold-500)]/20 to-transparent hidden md:block"></div>
+
+        <div className="text-center md:text-left flex-1">
+          <motion.div 
+            initial={{ opacity: 0, x: 20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            className="flex flex-col items-center md:items-start"
+          >
+            <div className="w-12 h-12 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center mb-4 text-zinc-400">
+              <MessageCircleHeart size={24} />
+            </div>
+            <h3 className="text-4xl md:text-5xl font-bold tracking-tight text-white mb-2">
+              {stats.testimonies.toLocaleString()}
+            </h3>
+            <p className="text-zinc-500 uppercase tracking-widest text-sm font-semibold">Testimonies Shared</p>
           </motion.div>
         </div>
 

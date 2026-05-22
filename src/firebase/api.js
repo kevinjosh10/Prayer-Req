@@ -173,3 +173,8 @@ export const incrementTestimonyPraise = async (id) => {
     return (currentCount || 0) + 1;
   });
 };
+
+export const deleteTestimony = async (id) => {
+  const testimonyRef = ref(db, `testimonies/${id}`);
+  await remove(testimonyRef);
+};
