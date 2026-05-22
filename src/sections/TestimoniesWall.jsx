@@ -1,11 +1,17 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, User } from 'lucide-react';
+import { Clock, User, Share2 } from 'lucide-react';
 import { listenToTestimonies, incrementTestimonyPraise } from '../firebase/api';
+import html2canvas from 'html2canvas';
+import ShareStoryCard from '../components/ShareStoryCard';
+import { useRef } from 'react';
 
 export default function TestimoniesWall() {
   const [testimonies, setTestimonies] = useState([]);
   const [praisedIds, setPraisedIds] = useState(new Set());
+  const [shareData, setShareData] = useState(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const shareCardRef = useRef(null);
 
   useEffect(() => {
     const unsubscribe = listenToTestimonies((data) => {
@@ -29,6 +35,34 @@ export default function TestimoniesWall() {
         return next;
       });
     }
+  };
+
+  const handleShare = async (testimony) => {
+    setIsGenerating(true);
+    setShareData(testimony);
+    
+    // Wait for React to render the hidden component
+    setTimeout(async () => {
+      if (shareCardRef.current) {
+        try {
+          const canvas = await html2canvas(shareCardRef.current, {
+            scale: 1,
+            backgroundColor: '#09090b',
+            logging: false,
+            useCORS: true
+          });
+          const image = canvas.toDataURL('image/png');
+          const link = document.createElement('a');
+          link.href = image;
+          link.download = 'my-testimony.png';
+          link.click();
+        } catch (error) {
+          console.error("Error generating image:", error);
+        }
+      }
+      setIsGenerating(false);
+      setShareData(null);
+    }, 150);
   };
 
   const getTimeAgo = (timestamp) => {
@@ -71,18 +105,30 @@ export default function TestimoniesWall() {
                 key={testimony.id} 
                 testimony={testimony} 
                 handlePraise={handlePraise} 
+                handleShare={handleShare}
                 praisedIds={praisedIds} 
                 getTimeAgo={getTimeAgo} 
+                isGenerating={isGenerating}
               />
             ))}
           </AnimatePresence>
         </div>
       </div>
+
+      {shareData && (
+        <ShareStoryCard 
+          ref={shareCardRef}
+          type="testimony"
+          title={shareData.title}
+          content={shareData.content}
+          category={shareData.category}
+        />
+      )}
     </section>
   );
 }
 
-function TestimonyCard({ testimony, handlePraise, praisedIds, getTimeAgo }) {
+function TestimonyCard({ testimony, handlePraise, handleShare, praisedIds, getTimeAgo, isGenerating }) {
   const [isBursting, setIsBursting] = useState(false);
 
   const onPraiseClick = () => {
@@ -138,6 +184,15 @@ function TestimonyCard({ testimony, handlePraise, praisedIds, getTimeAgo }) {
               <span>
                 {(testimony.praises || 0) + (praisedIds.has(testimony.id) ? (testimony.praises ? 0 : 1) : 0)} Praise God
               </span>
+            </button>
+            
+            <button
+              onClick={() => handleShare(testimony)}
+              disabled={isGenerating}
+              className="ml-3 p-2 rounded-full bg-zinc-900 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors disabled:opacity-50"
+              title="Share to Instagram Story"
+            >
+              <Share2 size={16} />
             </button>
             
             {/* Particle Burst Animation */}

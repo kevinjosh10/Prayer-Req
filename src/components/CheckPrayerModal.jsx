@@ -1,7 +1,10 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Search, Loader2 } from 'lucide-react';
+import { X, Search, Loader2, Share2, CheckCircle2 } from 'lucide-react';
 import { checkPrayerStatusByCode } from '../firebase/api';
+import html2canvas from 'html2canvas';
+import ShareStoryCard from '../components/ShareStoryCard';
+import { useRef } from 'react';
 
 const categoryVerses = {
   "Healing": { verse: "Jeremiah 17:14", text: "Heal me, O Lord, and I shall be healed; save me, and I shall be saved, for you are my praise." },
@@ -29,6 +32,8 @@ export default function CheckPrayerModal({ isOpen, onClose }) {
   const [code, setCode] = useState('');
   const [status, setStatus] = useState('idle'); // idle, loading, result, error
   const [result, setResult] = useState(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const shareCardRef = useRef(null);
 
   const handleCheck = async (e) => {
     e.preventDefault();
@@ -54,6 +59,32 @@ export default function CheckPrayerModal({ isOpen, onClose }) {
     setStatus('idle');
     setResult(null);
     onClose();
+  };
+
+  const handleShare = async () => {
+    setIsGenerating(true);
+    
+    // Wait for React to render the hidden component
+    setTimeout(async () => {
+      if (shareCardRef.current) {
+        try {
+          const canvas = await html2canvas(shareCardRef.current, {
+            scale: 1,
+            backgroundColor: '#09090b',
+            logging: false,
+            useCORS: true
+          });
+          const image = canvas.toDataURL('image/png');
+          const link = document.createElement('a');
+          link.href = image;
+          link.download = 'answered-prayer.png';
+          link.click();
+        } catch (error) {
+          console.error("Error generating image:", error);
+        }
+      }
+      setIsGenerating(false);
+    }, 150);
   };
 
   if (!isOpen) return null;
@@ -119,9 +150,16 @@ export default function CheckPrayerModal({ isOpen, onClose }) {
                     <CheckCircle2 size={24} className="text-gold-400" />
                   </div>
                   <h4 className="text-lg font-medium text-white mb-2">It has been prayed for.</h4>
-                  <p className="text-sm text-zinc-400 font-light mb-6">
+                  <p className="text-sm text-zinc-400 font-light mb-4">
                     Your prayer was lifted up on {new Date(result.prayedForAt).toLocaleDateString()}. You are not alone.
                   </p>
+                  <button
+                    onClick={handleShare}
+                    disabled={isGenerating}
+                    className="w-full mb-6 bg-[var(--color-gold-500)] text-zinc-950 rounded-xl py-2.5 font-medium flex items-center justify-center gap-2 hover:bg-[var(--color-gold-400)] transition-all disabled:opacity-70 disabled:cursor-not-allowed shadow-[0_0_15px_rgba(232,208,141,0.2)] text-sm"
+                  >
+                    {isGenerating ? <Loader2 size={16} className="animate-spin" /> : <><Share2 size={16} /> Share Answered Prayer</>}
+                  </button>
                 </>
               ) : (
                 <>
@@ -161,9 +199,16 @@ export default function CheckPrayerModal({ isOpen, onClose }) {
           )}
         </motion.div>
       </div>
+
+      {result && result.prayedFor && (
+        <ShareStoryCard 
+          ref={shareCardRef}
+          type="prayer"
+          content={result.request}
+          category={result.category}
+          verse={categoryVerses[result.category]?.text || "Casting all your anxieties on him, because he cares for you."}
+        />
+      )}
     </AnimatePresence>
   );
 }
-
-// Ensure CheckCircle2 is available if not imported top level
-import { CheckCircle2 } from 'lucide-react';
