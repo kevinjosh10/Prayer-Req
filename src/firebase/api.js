@@ -112,6 +112,14 @@ export const markAsPrayed = async (id, status = true) => {
   });
 };
 
+// Update prayer visibility (public/private)
+export const updatePrayerVisibility = async (id, isPublic) => {
+  const requestRef = ref(db, `prayerRequests/${id}`);
+  await update(requestRef, {
+    isPublic: isPublic
+  });
+};
+
 // Delete a prayer request
 export const deletePrayerRequest = async (id) => {
   const requestRef = ref(db, `prayerRequests/${id}`);

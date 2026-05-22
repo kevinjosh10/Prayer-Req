@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { listenToPrayerRequests, markAsPrayed, deletePrayerRequest } from '../firebase/api';
+import { listenToPrayerRequests, markAsPrayed, deletePrayerRequest, updatePrayerVisibility } from '../firebase/api';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle2, Trash2, ArrowLeft, Shield, Activity, Heart, Search, X } from 'lucide-react';
+import { CheckCircle2, Trash2, ArrowLeft, Shield, Activity, Heart, Search, X, EyeOff, Eye } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 
 export default function AdminPanel() {
@@ -37,6 +37,16 @@ export default function AdminPanel() {
     } catch (e) {
       console.error(e);
       alert("Failed to update status");
+    }
+  };
+
+  const handleToggleVisibility = async (id, currentIsPublic) => {
+    if (!window.confirm(`Are you sure you want to make this prayer ${currentIsPublic !== false ? 'Private (hide from wall)' : 'Public (show on wall)'}?`)) return;
+    try {
+      await updatePrayerVisibility(id, currentIsPublic === false ? true : false);
+    } catch (e) {
+      console.error(e);
+      alert("Failed to update visibility");
     }
   };
 
@@ -262,13 +272,20 @@ export default function AdminPanel() {
                       <td className="py-4 px-4 align-top w-full max-w-md">
                         <p className="text-sm text-zinc-300 font-light leading-relaxed whitespace-pre-wrap line-clamp-2">{req.request}</p>
                       </td>
-                      <td className="py-4 px-4 align-top text-right" onClick={(e) => e.stopPropagation()}>
+                      <td className="py-4 px-4 align-top text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          onClick={() => handleToggleVisibility(req.id, req.isPublic)}
+                          className="p-2 text-zinc-400 hover:text-[var(--color-gold-400)] hover:bg-[var(--color-gold-500)]/10 rounded-lg transition-all mr-2 inline-flex items-center justify-center bg-zinc-900/50"
+                          title={req.isPublic !== false ? "Make Private (Hide)" : "Make Public (Show)"}
+                        >
+                          {req.isPublic !== false ? <EyeOff size={16} /> : <Eye size={16} />}
+                        </button>
                         <button
                           onClick={() => handleDelete(req.id)}
-                          className="p-2 text-zinc-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                          className="p-2 text-zinc-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all inline-flex items-center justify-center bg-zinc-900/50"
                           title="Delete Request"
                         >
-                          <Trash2 size={18} />
+                          <Trash2 size={16} />
                         </button>
                       </td>
                     </tr>
@@ -335,7 +352,7 @@ export default function AdminPanel() {
                   )}
                 </div>
                 
-                <div className="flex gap-4 w-full sm:w-auto">
+                <div className="flex gap-4 w-full sm:w-auto flex-wrap sm:flex-nowrap">
                   <button
                     onClick={() => {
                       handleDelete(selectedPrayer.id);
@@ -344,6 +361,15 @@ export default function AdminPanel() {
                     className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-xl transition-colors font-medium text-sm"
                   >
                     <Trash2 size={16} /> Delete
+                  </button>
+                  <button
+                    onClick={() => {
+                      handleToggleVisibility(selectedPrayer.id, selectedPrayer.isPublic);
+                      setSelectedPrayer({...selectedPrayer, isPublic: selectedPrayer.isPublic === false ? true : false});
+                    }}
+                    className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-xl transition-colors font-medium text-sm"
+                  >
+                    {selectedPrayer.isPublic !== false ? <><EyeOff size={16} /> Hide</> : <><Eye size={16} /> Show</>}
                   </button>
                   <button
                     onClick={() => {
