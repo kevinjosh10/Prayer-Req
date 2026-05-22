@@ -19,7 +19,7 @@ export default function PrayersPage() {
       </header>
 
       <main className="relative z-10 -mt-12">
-        <CommunityWall />
+        <CommunityWall showUnpinnedOnly={true} />
       </main>
     </div>
   );

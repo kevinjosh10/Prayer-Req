@@ -10,7 +10,7 @@ import { useRef } from 'react';
 
 const ALL_CATEGORIES = ["All", "Healing", "Anxiety", "Family", "Financial", "Depression", "Relationship", "Spiritual", "Other"];
 
-export default function CommunityWall({ limit }) {
+export default function CommunityWall({ showPinnedOnly, showUnpinnedOnly }) {
   const [prayers, setPrayers] = useState([]);
   const [prayedForIds, setPrayedForIds] = useState(new Set());
   const [selectedCategory, setSelectedCategory] = useState("All");
@@ -101,24 +101,40 @@ export default function CommunityWall({ limit }) {
     ? prayers
     : prayers.filter(p => p.category === selectedCategory || (selectedCategory === "Other" && p.category === "Uncategorized"));
 
-  if (limit) {
-    filteredPrayers = filteredPrayers.slice(0, limit);
+  if (showPinnedOnly) {
+    filteredPrayers = filteredPrayers.filter(p => p.isPinned);
+  } else if (showUnpinnedOnly) {
+    filteredPrayers = filteredPrayers.filter(p => !p.isPinned);
   }
 
-  if (prayers.length === 0) return null;
+  // If we are strictly showing pinned but there are none, don't render the section.
+  // Wait, if we want to show a message, we can let it render the "No prayers found" state.
+  if (prayers.length === 0 && !showPinnedOnly) return null;
 
   return (
     <section className="py-24 relative overflow-hidden bg-black/50">
       <div className="container mx-auto px-6 relative z-10">
-        <div className="text-center mb-10">
-          <h2 className="text-3xl md:text-4xl font-semibold mb-4">You Are Not Alone</h2>
-          <p className="text-zinc-400 font-light max-w-2xl mx-auto">
-            These are anonymous prayers from people around the world. Take a moment to lift someone else up.
+        <div className="text-center mb-16">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-zinc-900/50 text-zinc-400 text-sm font-medium mb-6 border border-zinc-800"
+          >
+            <span className="text-[var(--color-gold-500)]">✨</span> Global Community Wall
+          </motion.div>
+          <h2 className="text-3xl md:text-5xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-white via-zinc-200 to-zinc-500">
+            {showPinnedOnly ? "Featured Prayers" : "You Are Not Alone"}
+          </h2>
+          <p className="text-zinc-400 font-light max-w-2xl mx-auto text-lg leading-relaxed">
+            {showPinnedOnly 
+              ? "Read and lift up these special requests selected from our community." 
+              : "Every whisper is heard. Stand together and lift up these anonymous prayers from around the world."}
           </p>
         </div>
 
-        {/* Filters - Only show if not limited */}
-        {!limit && (
+        {/* Filters - Only show if not limited by pinned */}
+        {!showPinnedOnly && (
           <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-8 scrollbar-hide snap-x justify-start md:justify-center">
             <div className="flex items-center gap-2 px-4 md:px-0">
               <Filter size={16} className="text-zinc-500 mr-2 shrink-0" />
@@ -162,15 +178,15 @@ export default function CommunityWall({ limit }) {
             animate={{ opacity: 1 }}
             className="text-center py-12 text-zinc-500 font-light"
           >
-            No prayers found in this category right now.
+            {showPinnedOnly ? "No prayers are currently featured." : "No prayers found in this category right now."}
           </motion.div>
         )}
 
-        {limit && prayers.length > limit && (
-          <div className="mt-12 text-center">
+        {showPinnedOnly && prayers.filter(p => !p.isPinned).length > 0 && (
+          <div className="mt-16 text-center relative z-10">
             <Link 
               to="/prayers" 
-              className="inline-flex items-center gap-2 px-8 py-4 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 rounded-full font-medium transition-all hover:scale-105 border border-zinc-800 hover:border-zinc-700 shadow-lg"
+              className="inline-flex items-center gap-3 px-10 py-5 bg-gradient-to-r from-[var(--color-gold-600)] to-[var(--color-gold-500)] text-zinc-950 rounded-full font-bold transition-all hover:scale-105 shadow-[0_0_40px_rgba(232,208,141,0.3)] hover:shadow-[0_0_60px_rgba(232,208,141,0.5)]"
             >
               Lift Up More Prayers &rarr;
             </Link>

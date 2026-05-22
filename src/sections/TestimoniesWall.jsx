@@ -1,18 +1,12 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { listenToTestimonies, incrementTestimonyPraise } from '../firebase/api';
-import html2canvas from 'html2canvas';
-import ShareStoryCard from '../components/ShareStoryCard';
 import TestimonyCard from '../components/TestimonyCard';
 import { Link } from 'react-router-dom';
-import { useRef } from 'react';
 
-export default function TestimoniesWall({ limit }) {
+export default function TestimoniesWall({ showPinnedOnly, showUnpinnedOnly }) {
   const [testimonies, setTestimonies] = useState([]);
   const [praisedIds, setPraisedIds] = useState(new Set());
-  const [shareData, setShareData] = useState(null);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const shareCardRef = useRef(null);
 
   useEffect(() => {
     const unsubscribe = listenToTestimonies((data) => {
@@ -38,33 +32,6 @@ export default function TestimoniesWall({ limit }) {
     }
   };
 
-  const handleShare = async (testimony) => {
-    setIsGenerating(true);
-    setShareData(testimony);
-    
-    // Wait for React to render the hidden component
-    setTimeout(async () => {
-      if (shareCardRef.current) {
-        try {
-          const canvas = await html2canvas(shareCardRef.current, {
-            scale: 1,
-            backgroundColor: '#09090b',
-            logging: false,
-            useCORS: true
-          });
-          const image = canvas.toDataURL('image/png');
-          const link = document.createElement('a');
-          link.href = image;
-          link.download = 'my-testimony.png';
-          link.click();
-        } catch (error) {
-          console.error("Error generating image:", error);
-        }
-      }
-      setIsGenerating(false);
-      setShareData(null);
-    }, 150);
-  };
 
   const getTimeAgo = (timestamp) => {
     const seconds = Math.floor((Date.now() - timestamp) / 1000);
@@ -77,7 +44,14 @@ export default function TestimoniesWall({ limit }) {
     return `${days}d ago`;
   };
 
-  if (testimonies.length === 0) return null;
+  let filteredTestimonies = testimonies;
+  if (showPinnedOnly) {
+    filteredTestimonies = filteredTestimonies.filter(t => t.isPinned);
+  } else if (showUnpinnedOnly) {
+    filteredTestimonies = filteredTestimonies.filter(t => !t.isPinned);
+  }
+
+  if (testimonies.length === 0 && !showPinnedOnly) return null;
 
   return (
     <section className="py-24 relative overflow-hidden bg-[#09090b] border-t border-zinc-800/50">
@@ -93,49 +67,51 @@ export default function TestimoniesWall({ limit }) {
           >
             <span>🙌</span> Praise Reports
           </motion.div>
-          <h2 className="text-3xl md:text-5xl font-bold mb-6 glow-text text-transparent bg-clip-text bg-gradient-to-r from-white to-zinc-400">Look What God Has Done</h2>
+          <h2 className="text-3xl md:text-5xl font-bold mb-6 glow-text text-transparent bg-clip-text bg-gradient-to-r from-white to-zinc-400">
+            {showPinnedOnly ? "Featured Testimonies" : "Look What God Has Done"}
+          </h2>
           <p className="text-zinc-400 font-light max-w-2xl mx-auto text-lg">
-            Real stories of answered prayers, healing, and miracles from our community.
+            {showPinnedOnly
+              ? "Read our featured stories of answered prayers, healing, and miracles."
+              : "Real stories of answered prayers, healing, and miracles from our community."}
           </p>
         </div>
 
         <div className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6">
           <AnimatePresence mode="popLayout">
-            {(limit ? testimonies.slice(0, limit) : testimonies).map((testimony) => (
+            {filteredTestimonies.map((testimony) => (
               <TestimonyCard 
                 key={testimony.id} 
                 testimony={testimony} 
                 handlePraise={handlePraise} 
-                handleShare={handleShare}
                 praisedIds={praisedIds} 
                 getTimeAgo={getTimeAgo} 
-                isGenerating={isGenerating}
               />
             ))}
           </AnimatePresence>
         </div>
 
-        {limit && testimonies.length > limit && (
-          <div className="mt-12 text-center">
+        {filteredTestimonies.length === 0 && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center py-12 text-zinc-500 font-light"
+          >
+            {showPinnedOnly ? "No testimonies are currently featured." : "No testimonies found right now."}
+          </motion.div>
+        )}
+
+        {showPinnedOnly && testimonies.filter(t => !t.isPinned).length > 0 && (
+          <div className="mt-16 text-center relative z-10">
             <Link 
               to="/testimonies" 
-              className="inline-flex items-center gap-2 px-8 py-4 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 rounded-full font-medium transition-all hover:scale-105 border border-zinc-800 hover:border-zinc-700 shadow-lg"
+              className="inline-flex items-center gap-3 px-10 py-5 bg-gradient-to-r from-[var(--color-gold-600)] to-[var(--color-gold-500)] text-zinc-950 rounded-full font-bold transition-all hover:scale-105 shadow-[0_0_40px_rgba(232,208,141,0.3)] hover:shadow-[0_0_60px_rgba(232,208,141,0.5)]"
             >
               Read All Testimonies &rarr;
             </Link>
           </div>
         )}
       </div>
-
-      {shareData && (
-        <ShareStoryCard 
-          ref={shareCardRef}
-          type="testimony"
-          title={shareData.title}
-          content={shareData.content}
-          category={shareData.category}
-        />
-      )}
     </section>
   );
 }

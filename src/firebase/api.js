@@ -135,6 +135,12 @@ export const deletePrayerRequest = async (id) => {
   await remove(requestRef);
 };
 
+// Toggle pin status
+export const togglePinPrayer = async (id, isPinned) => {
+  const requestRef = ref(db, `prayerRequests/${id}`);
+  await update(requestRef, { isPinned });
+};
+
 // ==========================================
 // TESTIMONIES / PRAISE REPORTS
 // ==========================================
@@ -180,4 +186,9 @@ export const deleteTestimony = async (id) => {
 export const flagTestimony = async (id) => {
   const testimonyRef = ref(db, `testimonies/${id}`);
   await update(testimonyRef, { flagged: true });
+};
+
+export const togglePinTestimony = async (id, isPinned) => {
+  const testimonyRef = ref(db, `testimonies/${id}`);
+  await update(testimonyRef, { isPinned });
 };

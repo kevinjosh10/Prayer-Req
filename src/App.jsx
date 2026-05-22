@@ -31,8 +31,8 @@ function LandingPage() {
       <GlobalImpact />
       <BibleVerses />
       <PrayerForm />
-      <CommunityWall limit={3} />
-      <TestimoniesWall limit={3} />
+      <CommunityWall showPinnedOnly={true} />
+      <TestimoniesWall showPinnedOnly={true} />
       
       <footer className="py-16 border-t border-zinc-800/50 relative">
         <div className="container mx-auto px-6 text-center max-w-3xl">

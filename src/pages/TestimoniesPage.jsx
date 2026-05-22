@@ -14,7 +14,7 @@ export default function TestimoniesPage() {
       </header>
 
       <main className="relative z-10 -mt-12">
-        <TestimoniesWall />
+        <TestimoniesWall showUnpinnedOnly={true} />
       </main>
     </div>
   );

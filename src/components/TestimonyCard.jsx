@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, User, Share2, Flag, Loader2 } from 'lucide-react';
+import { Clock, User, Flag } from 'lucide-react';
 
-export default function TestimonyCard({ testimony, handlePraise, handleShare, handleFlag, praisedIds, getTimeAgo, isGenerating }) {
+export default function TestimonyCard({ testimony, handlePraise, handleFlag, praisedIds, getTimeAgo }) {
   const [isBursting, setIsBursting] = useState(false);
 
   const onPraiseClick = () => {
@@ -70,17 +70,6 @@ export default function TestimonyCard({ testimony, handlePraise, handleShare, ha
                 {(testimony.praises || 0) + (praisedIds.has(testimony.id) ? (testimony.praises ? 0 : 1) : 0)} Praise God
               </span>
             </button>
-            
-            {handleShare && (
-              <button
-                onClick={() => handleShare(testimony)}
-                disabled={isGenerating}
-                className="ml-2 p-2 rounded-full bg-zinc-900 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors disabled:opacity-50 opacity-0 group-hover:opacity-100"
-                title="Share to Instagram Story"
-              >
-                {isGenerating ? <Loader2 size={14} className="animate-spin" /> : <Share2 size={14} />}
-              </button>
-            )}
             
             {/* Particle Burst Animation */}
             <AnimatePresence>

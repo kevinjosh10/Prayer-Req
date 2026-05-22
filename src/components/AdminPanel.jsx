@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { listenToPrayerRequests, markAsPrayed, deletePrayerRequest, updatePrayerVisibility, listenToTestimonies, deleteTestimony } from '../firebase/api';
+import { listenToPrayerRequests, markAsPrayed, deletePrayerRequest, updatePrayerVisibility, listenToTestimonies, deleteTestimony, togglePinPrayer, togglePinTestimony } from '../firebase/api';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle2, Trash2, ArrowLeft, Shield, Activity, Heart, Search, X, EyeOff, Eye } from 'lucide-react';
+import { CheckCircle2, Trash2, ArrowLeft, Shield, Activity, Heart, Search, X, EyeOff, Eye, Pin, PinOff } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 
 export default function AdminPanel() {
@@ -113,6 +113,30 @@ export default function AdminPanel() {
         }
       }
     });
+  };
+
+  const handleTogglePinPrayer = async (id, currentPin) => {
+    try {
+      await togglePinPrayer(id, !currentPin);
+      if (selectedPrayer && selectedPrayer.id === id) {
+        setSelectedPrayer(prev => ({ ...prev, isPinned: !currentPin }));
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Failed to pin prayer");
+    }
+  };
+
+  const handleTogglePinTestimony = async (id, currentPin) => {
+    try {
+      await togglePinTestimony(id, !currentPin);
+      if (selectedTestimony && selectedTestimony.id === id) {
+        setSelectedTestimony(prev => ({ ...prev, isPinned: !currentPin }));
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Failed to pin testimony");
+    }
   };
 
   if (!isAuthenticated) {
@@ -369,6 +393,17 @@ export default function AdminPanel() {
                           </td>
                           <td className="py-4 px-4 align-top text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                             <button
+                              onClick={() => handleTogglePinPrayer(req.id, req.isPinned)}
+                              className={`p-2 rounded-lg transition-all mr-2 inline-flex items-center justify-center ${
+                                req.isPinned 
+                                  ? 'text-[var(--color-gold-500)] bg-[var(--color-gold-500)]/10 hover:bg-[var(--color-gold-500)]/20' 
+                                  : 'text-zinc-400 hover:text-[var(--color-gold-400)] bg-zinc-900/50 hover:bg-[var(--color-gold-500)]/10'
+                              }`}
+                              title={req.isPinned ? "Unpin from Wall" : "Pin to Wall"}
+                            >
+                              {req.isPinned ? <Pin size={16} fill="currentColor" /> : <Pin size={16} />}
+                            </button>
+                            <button
                               onClick={() => handleToggleVisibility(req.id, req.isPublic, req.flagged)}
                               className="p-2 text-zinc-400 hover:text-[var(--color-gold-400)] hover:bg-[var(--color-gold-500)]/10 rounded-lg transition-all mr-2 inline-flex items-center justify-center bg-zinc-900/50"
                               title={req.isPublic !== false ? "Make Private (Hide)" : "Make Public (Show & Unflag)"}
@@ -433,6 +468,17 @@ export default function AdminPanel() {
                             </span>
                           </td>
                           <td className="py-4 px-4 align-top text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                            <button
+                              onClick={() => handleTogglePinTestimony(req.id, req.isPinned)}
+                              className={`p-2 rounded-lg transition-all mr-2 inline-flex items-center justify-center ${
+                                req.isPinned 
+                                  ? 'text-[var(--color-gold-500)] bg-[var(--color-gold-500)]/10 hover:bg-[var(--color-gold-500)]/20' 
+                                  : 'text-zinc-400 hover:text-[var(--color-gold-400)] bg-zinc-900/50 hover:bg-[var(--color-gold-500)]/10'
+                              }`}
+                              title={req.isPinned ? "Unpin from Wall" : "Pin to Wall"}
+                            >
+                              {req.isPinned ? <Pin size={16} fill="currentColor" /> : <Pin size={16} />}
+                            </button>
                             <button
                               onClick={() => handleDeleteTestimony(req.id)}
                               className="p-2 text-zinc-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all inline-flex items-center justify-center bg-zinc-900/50"
@@ -521,6 +567,16 @@ export default function AdminPanel() {
                     {selectedPrayer.isPublic !== false ? <><EyeOff size={16} /> Hide</> : <><Eye size={16} /> Show</>}
                   </button>
                   <button
+                    onClick={() => handleTogglePinPrayer(selectedPrayer.id, selectedPrayer.isPinned)}
+                    className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl transition-colors font-medium text-sm ${
+                      selectedPrayer.isPinned
+                        ? 'bg-[var(--color-gold-500)]/20 text-[var(--color-gold-400)] hover:bg-[var(--color-gold-500)]/30'
+                        : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'
+                    }`}
+                  >
+                    {selectedPrayer.isPinned ? <><PinOff size={16} /> Unpin</> : <><Pin size={16} /> Pin to Wall</>}
+                  </button>
+                  <button
                     onClick={() => {
                       handleTogglePrayed(selectedPrayer.id, selectedPrayer.prayedFor);
                       // Update local state so modal updates instantly
@@ -588,6 +644,16 @@ export default function AdminPanel() {
               </div>
 
               <div className="mt-8 pt-6 border-t border-white/10 flex flex-col sm:flex-row gap-4 justify-end items-center">
+                <button
+                  onClick={() => handleTogglePinTestimony(selectedTestimony.id, selectedTestimony.isPinned)}
+                  className={`w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 rounded-xl transition-colors font-medium text-sm ${
+                    selectedTestimony.isPinned
+                      ? 'bg-[var(--color-gold-500)]/20 text-[var(--color-gold-400)] hover:bg-[var(--color-gold-500)]/30'
+                      : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'
+                  }`}
+                >
+                  {selectedTestimony.isPinned ? <><PinOff size={16} /> Unpin</> : <><Pin size={16} /> Pin to Wall</>}
+                </button>
                 <button
                   onClick={() => handleDeleteTestimony(selectedTestimony.id)}
                   className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-xl transition-colors font-medium text-sm"
